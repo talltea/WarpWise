@@ -13,8 +13,8 @@ export function createDraft(overrides = {}) {
     updatedAt: overrides.updatedAt ?? new Date().toISOString(),
     loom: { shafts, treadles, warpCount, weftCount },
     threading: overrides.threading ?? createStraightDraw(warpCount, shafts),
-    tieup: overrides.tieup ?? createPlainWeaveTieup(shafts, treadles),
-    treadling: overrides.treadling ?? createStraightTreadling(weftCount, treadles),
+    tieup: overrides.tieup ?? createDefaultTieup(shafts, treadles),
+    treadling: overrides.treadling ?? createDefaultTreadling(weftCount),
     warpColors: overrides.warpColors ?? Array(warpCount).fill('#000000'),
     weftColors: overrides.weftColors ?? Array(weftCount).fill('#ffffff'),
     palette: overrides.palette ?? ['#000000', '#ffffff', '#cc0000', '#0066cc', '#339933', '#ff9900'],
@@ -27,19 +27,44 @@ export function createStraightDraw(count, shafts) {
   return Array.from({ length: count }, (_, i) => i % shafts);
 }
 
-// Plain weave: shaft 0 on treadle 0, shaft 1 on treadle 1, alternating
-export function createPlainWeaveTieup(shafts, treadles) {
+/**
+ * Build a tie-up from a readable mapping of treadle -> shaft numbers.
+ * Example: { 0: [0, 2], 1: [1, 3] } means treadle 0 raises shafts 0 and 2.
+ */
+export function tieupFromMap(shafts, treadles, map) {
   const tieup = Array.from({ length: shafts }, () => Array(treadles).fill(false));
-  // Even shafts tied to treadle 0, odd shafts tied to treadle 1
-  for (let s = 0; s < shafts; s++) {
-    tieup[s][s % 2] = true;
+  for (const [treadle, shaftList] of Object.entries(map)) {
+    for (const s of shaftList) {
+      tieup[s][Number(treadle)] = true;
+    }
   }
   return tieup;
 }
 
-// 0-1-2-3-4-5-0-1-2-3-4-5...
-export function createStraightTreadling(count, treadles) {
-  return Array.from({ length: count }, (_, i) => i % treadles);
+// Default tie-up: twill + tabby
+//   treadle (0-indexed) -> shafts raised
+export function createDefaultTieup(shafts, treadles) {
+  return tieupFromMap(shafts, treadles, {
+    0: [0, 2],  // treadle 1
+    1: [1, 3],  // treadle 2
+    2: [0, 1],  // treadle 3
+    3: [1, 2],  // treadle 4
+    4: [2, 3],  // treadle 5
+    5: [3, 0],  // treadle 6
+  });
+}
+
+/**
+ * Build a treadling sequence from an array of treadle indices (0-based),
+ * repeated to fill the given count.
+ */
+export function createRepeatingTreadling(count, sequence) {
+  return Array.from({ length: count }, (_, i) => sequence[i % sequence.length]);
+}
+
+// Default treadling: treadles 3-4-5-6 (0-indexed: 2,3,4,5)
+export function createDefaultTreadling(count) {
+  return createRepeatingTreadling(count, [2, 3, 4, 5]);
 }
 
 export function validateDraft(draft) {
