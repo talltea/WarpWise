@@ -9,43 +9,56 @@
 <body>
   <header>
     <h1>Weaving Draft</h1>
-    <span class="draft-name">Untitled Draft</span>
+    <div class="toolbar">
+      <select id="draft-select"></select>
+      <span id="draft-name" class="draft-name">Untitled Draft</span>
+      <button id="btn-new" class="btn" title="New draft">New</button>
+      <button id="btn-save" class="btn" title="Save draft">Save</button>
+      <button id="btn-rename" class="btn" title="Rename draft">Rename</button>
+      <button id="btn-delete" class="btn btn-danger" title="Delete draft">Delete</button>
+    </div>
   </header>
 
   <div class="main-container">
-    <div class="draft-layout">
-      <!--  Row 1: weft-color-spacer | threading | tieup  -->
-      <div class="grid-section spacer"></div>
-      <div class="grid-section threading">
-        <span class="grid-label">Threading</span>
-        <canvas id="threading-canvas"></canvas>
-      </div>
-      <div class="grid-section tieup">
-        <span class="grid-label">Tie-up</span>
-        <canvas id="tieup-canvas"></canvas>
+    <div class="draft-area">
+      <div class="draft-layout">
+        <!--  Row 1: weft-color-spacer | threading | tieup  -->
+        <div class="grid-section spacer"></div>
+        <div class="grid-section threading">
+          <span class="grid-label">Threading</span>
+          <canvas id="threading-canvas"></canvas>
+        </div>
+        <div class="grid-section tieup">
+          <span class="grid-label">Tie-up</span>
+          <canvas id="tieup-canvas"></canvas>
+        </div>
+
+        <!--  Row 2: weft colors | drawdown | treadling  -->
+        <div class="grid-section weft-colors">
+          <span class="grid-label">Weft</span>
+          <canvas id="weft-color-canvas"></canvas>
+        </div>
+        <div class="grid-section drawdown">
+          <span class="grid-label">Drawdown</span>
+          <canvas id="drawdown-canvas"></canvas>
+        </div>
+        <div class="grid-section treadling">
+          <span class="grid-label">Treadling</span>
+          <canvas id="treadling-canvas"></canvas>
+        </div>
+
+        <!--  Row 3: spacer | warp colors | spacer  -->
+        <div class="grid-section spacer"></div>
+        <div class="grid-section warp-colors">
+          <span class="grid-label">Warp</span>
+          <canvas id="warp-color-canvas"></canvas>
+        </div>
+        <div class="grid-section spacer"></div>
       </div>
 
-      <!--  Row 2: weft colors | drawdown | treadling  -->
-      <div class="grid-section weft-colors">
-        <span class="grid-label">Weft</span>
-        <canvas id="weft-color-canvas"></canvas>
+      <div class="sidebar">
+        <div id="palette-panel" class="panel"></div>
       </div>
-      <div class="grid-section drawdown">
-        <span class="grid-label">Drawdown</span>
-        <canvas id="drawdown-canvas"></canvas>
-      </div>
-      <div class="grid-section treadling">
-        <span class="grid-label">Treadling</span>
-        <canvas id="treadling-canvas"></canvas>
-      </div>
-
-      <!--  Row 3: spacer | warp colors | spacer  -->
-      <div class="grid-section spacer"></div>
-      <div class="grid-section warp-colors">
-        <span class="grid-label">Warp</span>
-        <canvas id="warp-color-canvas"></canvas>
-      </div>
-      <div class="grid-section spacer"></div>
     </div>
   </div>
 
