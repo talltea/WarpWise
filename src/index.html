@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weaving Draft</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Weaving Draft</h1>
+    <span class="draft-name">Untitled Draft</span>
+  </header>
+
+  <div class="main-container">
+    <div class="draft-layout">
+      <div class="grid-section threading">
+        <span class="grid-label">Threading</span>
+        <canvas id="threading-canvas"></canvas>
+      </div>
+      <div class="grid-section tieup">
+        <span class="grid-label">Tie-up</span>
+        <canvas id="tieup-canvas"></canvas>
+      </div>
+      <div class="grid-section drawdown">
+        <span class="grid-label">Drawdown</span>
+        <canvas id="drawdown-canvas"></canvas>
+      </div>
+      <div class="grid-section treadling">
+        <span class="grid-label">Treadling</span>
+        <canvas id="treadling-canvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-bar" id="info-bar"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

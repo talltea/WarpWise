@@ -620,9 +620,9 @@ Starting with a valid default draft means the user sees a working pattern immedi
 
 ## 11. Development Plan
 
-### Phase 1 — MVP (~4–5 weeks for solo dev)
+### Phase 1 — MVP
 
-| Week | Milestone |
+| Step | Milestone |
 |---|---|
 | **1** | Data model, drawdown computation, single canvas grid rendering with click interaction |
 | **2** | All four grids wired together, drawdown auto-updates, basic layout |
@@ -630,7 +630,7 @@ Starting with a valid default draft means the user sees a working pattern immedi
 | **4** | Progress tracking (threading + treadling), progress panel, keyboard shortcuts, auto-scroll |
 | **5** | Pan/zoom, PNG export, polish, deploy to GitHub Pages |
 
-### Phase 2 — Power Features (~2–3 weeks)
+### Phase 2 — Power Features
 
 - WIF import/export
 - Undo/redo (command stack on draft state)
@@ -638,7 +638,7 @@ Starting with a valid default draft means the user sees a working pattern immedi
 - Threading presets
 - JSON file backup
 
-### Phase 3 — Backend & Sharing (scope TBD)
+### Phase 3 — Backend & Sharing
 
 - Choose a BaaS (Firebase/Supabase) or build a simple REST API
 - Swap `StorageService` implementation
@@ -663,9 +663,9 @@ Starting with a valid default draft means the user sees a working pattern immedi
 
 ## 13. Open Questions
 
-- **Multi-treadle per pick?** Some weaving styles press multiple treadles simultaneously. Support in MVP or defer?
-- **Liftplan mode?** An alternative to tie-up + treadling where the user directly specifies which shafts to raise per pick. Common for table looms and dobby looms.
-- **Threading direction?** Some weavers thread right-to-left. Should the progress tracker support both directions?
+- **Multi-treadle per pick?** Some weaving styles press multiple treadles simultaneously. DEFER.
+- **Liftplan mode?** An alternative to tie-up + treadling where the user directly specifies which shafts to raise per pick. Common for table looms and dobby looms. DEFER
+- **Threading direction?** Some weavers thread right-to-left. Should the progress tracker support both directions? YES
 - **Yarn-level simulation?** Showing thread crossings rather than solid color blocks. Likely Phase 3+ but worth considering in the data model.
-- **Mobile support level?** Functional-but-basic, or fully optimized touch interactions?
-- **Progress notifications?** E.g. "You're 50% through threading!" — helpful or annoying?
+- **Mobile support level?** Functional-but-basic, or fully optimized touch interactions? BASIC.
+- **Progress notifications?** E.g. "You're 50% through threading!" — helpful or annoying? YES.
