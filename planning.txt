@@ -48,17 +48,17 @@ Build a single-page, client-side web app hosted on GitHub Pages that allows a us
 ### MVP (Phase 1)
 
 - [ ] **Configure loom setup** — set number of shafts (2–32), treadles (2–32), warp ends, weft picks
-- [ ] **Edit threading** — click cells to assign warp threads to shafts
-- [ ] **Edit tie-up** — click cells to toggle shaft/treadle connections
-- [ ] **Edit treadling** — click cells to assign treadles to weft rows
-- [ ] **Auto-compute drawdown** — recalculates on every edit
-- [ ] **Warp/weft color sequences** — assign colors per thread with a palette
-- [ ] **Drawdown renders in color** — warp color shown when warp is on top, weft color when weft is on top
+- [√] **Edit threading** — click cells to assign warp threads to shafts
+- [√] **Edit tie-up** — click cells to toggle shaft/treadle connections
+- [√] **Edit treadling** — click cells to assign treadles to weft rows
+- [√] **Auto-compute drawdown** — recalculates on every edit
+- [√] **Warp/weft color sequences** — assign colors per thread with a palette
+- [√] **Drawdown renders in color** — warp color shown when warp is on top, weft color when weft is on top
 - [ ] **Track threading progress** — mark current warp end during loom setup
 - [ ] **Track treadling progress** — mark current pick during weaving
 - [ ] **Progress panel** — visual feedback, advance/retreat controls, reset
-- [ ] **Save/load drafts** — localStorage with named drafts
-- [ ] **New / rename / delete draft**
+- [√] **Save/load drafts** — localStorage with named drafts
+- [√] **New / rename / delete draft**
 - [ ] **Export draft as PNG image**
 - [ ] **Responsive pan/zoom** for large drafts
 

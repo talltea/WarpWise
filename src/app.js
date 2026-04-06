@@ -5,6 +5,7 @@ import { computeDrawdown } from './model/drawdown.js';
 import { GridCanvas } from './ui/gridCanvas.js';
 import { PalettePanel } from './ui/palette.js';
 import { ColorTools } from './ui/colorTools.js';
+import { SequenceTools, THREADING_PRESETS, TREADLING_PRESETS } from './ui/sequenceTools.js';
 import { StorageService } from './services/storage.js';
 
 const CELL_SIZE = 20;
@@ -188,6 +189,42 @@ const treadlingGrid = new GridCanvas(document.getElementById('treadling-canvas')
   onScroll({ scrollY }) {
     drawdownGrid.setScrollY(scrollY);
     weftColorBar.setScrollY(scrollY);
+  },
+});
+
+// ============================================================
+// Sequence tools (threading & treadling patterns)
+// ============================================================
+
+const threadingTools = new SequenceTools(document.getElementById('threading-tools'), {
+  label: 'Threading',
+  max: draft.loom.shafts,
+  direction: 'cols',
+  presets: THREADING_PRESETS,
+  onApply(sequence) {
+    for (let i = 0; i < draft.threading.length; i++) {
+      draft.threading[i] = sequence[i % sequence.length];
+    }
+    rebuildDrawdown();
+    threadingGrid.render();
+    drawdownGrid.render();
+    autoSave();
+  },
+});
+
+const treadlingTools = new SequenceTools(document.getElementById('treadling-tools'), {
+  label: 'Treadling',
+  max: draft.loom.treadles,
+  direction: 'rows',
+  presets: TREADLING_PRESETS,
+  onApply(sequence) {
+    for (let i = 0; i < draft.treadling.length; i++) {
+      draft.treadling[i] = sequence[i % sequence.length];
+    }
+    rebuildDrawdown();
+    treadlingGrid.render();
+    drawdownGrid.render();
+    autoSave();
   },
 });
 

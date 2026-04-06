@@ -28,21 +28,15 @@
 
       <!-- Center: grids -->
       <div class="draft-center">
-        <!-- Warp color tools above the grid -->
+        <!-- Warp color tools -->
         <div class="panel warp-tools-panel" id="warp-color-tools"></div>
 
         <div class="draft-layout">
-          <!--  Row 1: spacer | warp colors | spacer  -->
-          <div class="grid-section spacer"></div>
-          <div class="grid-section warp-colors">
-            <canvas id="warp-color-canvas"></canvas>
-          </div>
-          <div class="grid-section spacer"></div>
-
-          <!--  Row 2: spacer | threading | tieup  -->
+          <!--  Row 1: spacer | threading | tieup  -->
           <div class="grid-section spacer"></div>
           <div class="grid-section threading">
             <span class="grid-label">Threading</span>
+            <span id="threading-tools"></span>
             <canvas id="threading-canvas"></canvas>
           </div>
           <div class="grid-section tieup">
@@ -50,8 +44,16 @@
             <canvas id="tieup-canvas"></canvas>
           </div>
 
+          <!--  Row 2: spacer | warp colors | spacer  -->
+          <div class="grid-section spacer"></div>
+          <div class="grid-section warp-colors">
+            <canvas id="warp-color-canvas"></canvas>
+          </div>
+          <div class="grid-section spacer"></div>
+
           <!--  Row 3: weft colors | drawdown | treadling  -->
           <div class="grid-section weft-colors">
+            <span class="grid-label">&nbsp;</span>
             <canvas id="weft-color-canvas"></canvas>
           </div>
           <div class="grid-section drawdown">
@@ -60,6 +62,7 @@
           </div>
           <div class="grid-section treadling">
             <span class="grid-label">Treadling</span>
+            <span id="treadling-tools"></span>
             <canvas id="treadling-canvas"></canvas>
           </div>
         </div>

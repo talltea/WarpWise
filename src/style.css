@@ -239,9 +239,9 @@ header h1 { font-size: 18px; font-weight: 600; }
 
 /* --- Grid Layout --- */
 /*
-  Row 1: spacer | warp colors | spacer
-  Row 2: spacer | threading   | tieup
-  Row 3: weft   | drawdown    | treadling
+  Row 1: spacer    | threading   | tieup
+  Row 2: spacer    | warp colors | spacer
+  Row 3: weft cols | drawdown    | treadling
 */
 .draft-layout {
   display: grid;
@@ -261,15 +261,19 @@ header h1 { font-size: 18px; font-weight: 600; }
 .draft-layout > :nth-child(8) { grid-column: 2; grid-row: 3; }
 .draft-layout > :nth-child(9) { grid-column: 3; grid-row: 3; }
 
-/* Rows 1 & 2 align bottom, row 3 aligns top */
+/* Row 1 aligns bottom (threading sits flush above warp colors) */
 .draft-layout > :nth-child(1),
 .draft-layout > :nth-child(2),
-.draft-layout > :nth-child(3),
+.draft-layout > :nth-child(3) {
+  align-self: end;
+}
+/* Row 2 aligns bottom (warp colors flush above drawdown) */
 .draft-layout > :nth-child(4),
 .draft-layout > :nth-child(5),
 .draft-layout > :nth-child(6) {
   align-self: end;
 }
+/* Row 3 aligns top */
 .draft-layout > :nth-child(7),
 .draft-layout > :nth-child(8),
 .draft-layout > :nth-child(9) {
@@ -298,6 +302,59 @@ header h1 { font-size: 18px; font-weight: 600; }
   letter-spacing: 0.5px;
   color: var(--text-muted);
   margin-bottom: 4px;
+  height: 16px;
+  line-height: 16px;
+}
+
+/* --- Sequence Tools (threading/treadling patterns) --- */
+.sequence-toggle-btn {
+  margin-bottom: 4px;
+}
+
+.sequence-builder {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sequence-presets {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.sequence-preset-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-right: 2px;
+}
+
+.sequence-grid-row {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.sequence-grid-wrap {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.sequence-grid-wrap canvas {
+  display: block;
+  cursor: crosshair;
+}
+
+.sequence-len-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 /* --- Info Bar --- */
