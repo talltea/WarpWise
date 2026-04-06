@@ -7,22 +7,21 @@
 ### What Is a Weaving Draft?
 A weaving draft is a set of four interconnected grids that together describe how a woven fabric is constructed on a shaft loom:
 
-Copy
+```
         ┌─────────────────────┬────────────┐
         │     THREADING       │  TIE-UP    │
         │  (warp × shafts)    │(shafts ×   │
         │                     │ treadles)  │
+        ├─────────────────────┤            │
+        │   WARP COLORS       │            │
         ├─────────────────────┼────────────┤
         │     DRAWDOWN        │ TREADLING  │
         │  (warp × weft)      │(weft ×     │
-        │  [auto-computed]     │ treadles)  │
-        │                     │            │
-        ├─────────────────────┤            │
-        │   WARP COLORS       │            │
+        │  [auto-computed]    │ treadles)  │
         └─────────────────────┴────────────┘
-              WEFT COLORS
-           (shown on left edge)
-
+   WEFT COLORS
+   (shown on left edge of drawdown)
+```
 
 | Grid | What It Represents |
 |---|---|
@@ -48,19 +47,23 @@ Build a single-page, client-side web app hosted on GitHub Pages that allows a us
 ### MVP (Phase 1)
 
 - [ ] **Configure loom setup** — set number of shafts (2–32), treadles (2–32), warp ends, weft picks
-- [√] **Edit threading** — click cells to assign warp threads to shafts
-- [√] **Edit tie-up** — click cells to toggle shaft/treadle connections
-- [√] **Edit treadling** — click cells to assign treadles to weft rows
-- [√] **Auto-compute drawdown** — recalculates on every edit
-- [√] **Warp/weft color sequences** — assign colors per thread with a palette
-- [√] **Drawdown renders in color** — warp color shown when warp is on top, weft color when weft is on top
+- [x] **Edit threading** — click cells to assign warp threads to shafts
+- [x] **Edit tie-up** — click cells to toggle shaft/treadle connections
+- [x] **Edit treadling** — click cells to assign treadles to weft rows
+- [x] **Auto-compute drawdown** — recalculates on every edit
+- [x] **Warp/weft color sequences** — assign colors per thread with a palette
+- [x] **Drawdown renders in color** — warp color shown when warp is on top, weft color when weft is on top
+- [x] **Color tools** — fill all, repeating color patterns, drag-to-paint on color bars
+- [x] **Sequence pattern tools** — repeating patterns for threading and treadling with presets (straight, point)
+- [x] **Drag-to-paint** — click-and-drag to fill multiple cells on color bars
 - [ ] **Track threading progress** — mark current warp end during loom setup
 - [ ] **Track treadling progress** — mark current pick during weaving
 - [ ] **Progress panel** — visual feedback, advance/retreat controls, reset
-- [√] **Save/load drafts** — localStorage with named drafts
-- [√] **New / rename / delete draft**
+- [x] **Save/load drafts** — localStorage with named drafts, auto-save on every edit
+- [x] **New / rename / delete draft** — inline rename by clicking the name
 - [ ] **Export draft as PNG image**
-- [ ] **Responsive pan/zoom** for large drafts
+- [x] **Synchronized scrolling** — threading/drawdown share horizontal scroll, treadling/drawdown share vertical scroll
+- [x] **Virtualized rendering** — only visible cells are drawn (viewport-based)
 
 ### Phase 2
 
@@ -68,9 +71,8 @@ Build a single-page, client-side web app hosted on GitHub Pages that allows a us
 - [ ] **Download/upload draft as JSON file** — backup and device transfer
 - [ ] **Undo/redo**
 - [ ] **Drawdown view modes** — structural (black/white), color, interlacement
-- [ ] **Quick-fill tools** — straight draw, point draw, twill presets for threading
-- [ ] **Drag to paint** — click-and-drag to fill multiple cells
 - [ ] **Print-friendly stylesheet**
+- [ ] **Zoom controls** — zoom in/out on grids
 
 ### Phase 3 (Future / Backend Required)
 
@@ -85,9 +87,9 @@ Build a single-page, client-side web app hosted on GitHub Pages that allows a us
 
 ### Draft Schema
 
-Copy
+```
 interface Draft {
-  id: string;               // UUID
+  id: string;               // UUID (crypto.randomUUID)
   name: string;
   createdAt: string;        // ISO 8601
   updatedAt: string;        // ISO 8601
@@ -109,28 +111,32 @@ interface LoomSettings {
 }
 
 interface ProgressState {
-  // Threading: which warp end the weaver is currently on during setup
-  currentThread: number;    // 0-based index into threading, -1 = not started
-
-  // Treadling: which pick the weaver is currently weaving
-  currentPick: number;      // 0-based index into treadling, -1 = not started
+  currentThread: number;    // 0-based index, -1 = not started
+  currentPick: number;      // 0-based index, -1 = not started
 }
-
+```
 
 ### Default Values
 
-Copy
-function createDefaultProgress() {
-  return {
-    currentThread: -1,  // not started
-    currentPick: -1,    // not started
-  };
-}
+| Setting | Default |
+|---|---|
+| Shafts | 4 |
+| Treadles | 6 |
+| Warp ends | 60 |
+| Weft picks | 60 |
+| Threading | Straight draw (0-1-2-3-0-1-2-3...) |
+| Tie-up | Twill + tabby (see `createDefaultTieup` in draft.js) |
+| Treadling | Treadles 3-4-5-6 repeating (0-indexed: 2,3,4,5) |
+| Warp color | Black (`#000000`) |
+| Weft color | White (`#ffffff`) |
+| Palette | Black, white, red, blue, green, orange |
+| Progress | Both at -1 (not started) |
 
+The tie-up is defined using `tieupFromMap()` which takes a readable `{ treadle: [shaft, ...] }` mapping.
 
 ### Drawdown Computation (Pure Function)
 
-Copy
+```
 For each cell (warpIndex, weftIndex):
   shaft    = threading[warpIndex]
   treadle  = treadling[weftIndex]
@@ -138,237 +144,155 @@ For each cell (warpIndex, weftIndex):
 
   if warpOnTop → show warpColors[warpIndex]
   else         → show weftColors[weftIndex]
+```
 
-
-This is the heart of the app. It's deterministic and derived entirely from the three input grids + colors. It is never stored — always recomputed.
-
-### Example: Compact Serialized Size
-
-A draft with 200 warp ends, 200 weft picks, 8 shafts, 8 treadles:
-
-| Field | Size |
-|---|---|
-| threading (200 ints) | ~400 bytes |
-| treadling (200 ints) | ~400 bytes |
-| tieup (8×8 bools) | ~100 bytes |
-| warpColors (200 hex) | ~1.4 KB |
-| weftColors (200 hex) | ~1.4 KB |
-| progress (2 ints) | ~30 bytes |
-| metadata | ~200 bytes |
-| **Total** | **~4 KB** |
-
-localStorage (5–10 MB) comfortably holds **1,000+** drafts of this size.
+Deterministic, derived entirely from the three input grids + colors. Never stored — always recomputed. O(warp × weft), runs in < 1ms for 500×500.
 
 ---
 
 ## 4. Architecture
 
-Copy
+```
 ┌─────────────────────────────────────────────────┐
 │                    UI Layer                      │
 │  ┌───────────┐ ┌───────────┐ ┌───────────────┐  │
-│  │ Toolbar / │ │ Grid      │ │ Color Palette │  │
-│  │ Controls  │ │ Canvases  │ │ & Progress    │  │
+│  │ Toolbar / │ │ Grid      │ │ Color/Pattern │  │
+│  │ Controls  │ │ Canvases  │ │ Tools         │  │
 │  └───────────┘ └───────────┘ └───────────────┘  │
 ├─────────────────────────────────────────────────┤
 │                 App State                        │
 │  Single source of truth (Draft object)           │
-│  Emit change events → re-render                  │
+│  Direct mutation → re-render affected grids      │
 ├──────────────┬──────────────┬───────────────────┤
 │ Draft Engine │ Storage Svc  │ File I/O Service  │
 │ (compute     │ (save/load)  │ (WIF, JSON, PNG)  │
 │  drawdown)   │              │                   │
 └──────────────┴──────────────┴───────────────────┘
+```
 
+### Actual Module Breakdown (as built)
 
-### Module Breakdown
-
-Copy
+```
+index.html                  # Root (for GitHub Pages), refs into src/
 src/
-├── index.html
-├── style.css
-├── app.js                  # Entry point, state management, event wiring
+├── app.js                  # Entry point, state, event wiring
+├── style.css               # All styles (CSS custom properties for theming)
 ├── model/
-│   ├── draft.js            # Draft creation, validation, defaults
-│   └── drawdown.js         # Pure function: compute drawdown from draft
+│   ├── draft.js            # Draft creation, validation, defaults, tieupFromMap
+│   └── drawdown.js         # Pure drawdown computation
 ├── services/
-│   ├── storage.js          # Save/load abstraction (localStorage now, API later)
-│   └── fileio.js           # WIF parser/exporter, JSON export, PNG export
-├── ui/
-│   ├── gridCanvas.js       # Reusable canvas grid component
-│   ├── threadingView.js    # Threading grid (wires up gridCanvas)
-│   ├── tieupView.js        # Tie-up grid
-│   ├── treadlingView.js    # Treadling grid
-│   ├── drawdownView.js     # Drawdown grid (read-only, computed)
-│   ├── colorBar.js         # Warp/weft color strips
-│   ├── palette.js          # Color picker / palette UI
-│   ├── progressPanel.js    # Progress tracking controls & display
-│   └── toolbar.js          # Top-level controls, draft list, settings
-└── utils/
-    ├── uuid.js
-    └── export.js           # Canvas-to-PNG helper
+│   └── storage.js          # localStorage save/load (async interface)
+└── ui/
+    ├── gridCanvas.js       # Reusable canvas grid: render, scroll, click, drag-to-paint
+    ├── palette.js           # Color palette panel (active swatch + swatches)
+    ├── colorTools.js        # Fill All + Repeat Pattern builder for colors
+    └── sequenceTools.js     # Repeat Pattern builder for threading/treadling (uses mini GridCanvas)
+```
 
+Note: `index.html` lives at the repo root (GitHub Pages requirement) and references `src/` files. No build step.
 
 ### Technology Choices
 
 | Concern | Choice | Rationale |
 |---|---|---|
-| **Framework** | Vanilla JS (ES modules) | Zero build step, runs directly on GH Pages, no dependencies to manage |
+| **Framework** | Vanilla JS (ES modules) | Zero build step, runs directly on GH Pages, no dependencies |
 | **Grid rendering** | HTML `<canvas>` | Performant for large grids (1000+ cells); pixel-level control |
-| **State management** | Single `Draft` object + custom events | Simple, predictable; no library needed for a single-user app |
+| **State management** | Single `Draft` object, direct mutation | Simple; no library needed for a single-user app |
 | **Styling** | Plain CSS with custom properties | Theming via variables, no tooling |
-| **Build step** | None (or optional ESBuild/Vite later) | Start simple; add bundling only if needed |
-
-> **Why not a framework?** For a grid-heavy canvas app, React/Vue would mostly manage the toolbar and sidebar — the expensive part (grids) bypasses the DOM anyway. Vanilla JS keeps the project dependency-free and GitHub-Pages-simple. A lightweight framework (Preact, Svelte) is a reasonable alternative if you prefer components.
+| **Build step** | None | Start simple; add bundling only if needed |
 
 ---
 
 ## 5. UI Layout
 
-### Desktop (primary target)
+### Current Desktop Layout
 
-Copy
-┌──────────────────────────────────────────────────────────┐
-│  [Toolbar]  Draft: "My Twill" ▼   Shafts: [4]           │
-│  [New] [Save] [Export ▼]          Treadles: [6]          │
-├──────────┬──────────────────────────┬───────┬────────────┤
-│          │       THREADING          │TIE-UP │            │
-│  Weft    │     (click to edit)      │(click │  Color     │
-│  Color   ├──────────────────────────┤ edit) │  Palette   │
-│  Bar     │                          ├───────┤            │
-│          │       DRAWDOWN           │TREAD- │ ─────────  │
-│          │    (auto-computed)        │LING   │  Progress  │
-│          │                          │(click │  Panel     │
-│          │                          │ edit) │            │
-│          ├──────────────────────────┤       │            │
-│          │     WARP COLOR BAR       │       │            │
-└──────────┴──────────────────────────┴───────┴────────────┘
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  Weaving Draft   [draft ▼] [name____] [New] [Save] [Delete]     │
+├──────────────┬───────────────────────────────────────────────────┤
+│              │                                                   │
+│  Palette:    │            THREADING       │  TIE-UP              │
+│  [■] [swatches]           [Pattern...]    │                      │
+│              │        ────────────────    │                      │
+│  Weft Colors:│         WARP COLOR BAR                            │
+│  [Fill All]  │        ────────────────────┬──────────            │
+│  [Repeat...] │  Weft  │   DRAWDOWN        │ TREADLING            │
+│              │  Color │  (auto-computed)   │ [Pattern...]         │
+│              │  Bar   │                   │                      │
+│              │        │                   │                      │
+├──────────────┴────────┴───────────────────┴──────────────────────┤
+│  4 shafts · 6 treadles · 60 ends · 60 picks                     │
+└──────────────────────────────────────────────────────────────────┘
+```
 
+Key layout decisions:
+- **Warp color bar** sits between threading and drawdown (above drawdown)
+- **Weft color bar** sits to the left of drawdown, aligned with the drawdown canvas
+- **Palette** in left sidebar — always visible
+- **Color tools** (Fill All + Repeat Pattern) in sidebar for weft, above grids for warp
+- **Pattern tools** for threading/treadling are inline buttons that expand a mini-grid builder
 
 ### Interaction Model
 
 | Action | Behavior |
 |---|---|
-| **Click cell** in threading | Sets that warp end to that shaft (one shaft per end — column is exclusive) |
+| **Click cell** in threading | Sets that warp end to that shaft (exclusive per column) |
 | **Click cell** in tie-up | Toggles connection (multiple per column allowed) |
-| **Click cell** in treadling | Sets that weft pick to that treadle (one treadle per pick — row is exclusive) |
-| **Click** warp/weft color bar cell | Opens color picker or applies selected palette color |
-| **Scroll wheel** over grids | Zoom in/out |
-| **Click-drag** on drawdown | Pan |
+| **Click cell** in treadling | Sets that weft pick to that treadle (exclusive per row) |
+| **Click/drag** warp color bar | Paints cells with active palette color |
+| **Click/drag** weft color bar | Paints cells with active palette color |
+| **Wheel** over any grid | Scrolls; synced grids follow |
+| **Click draft name** | Edits name inline |
 
-### Grid Rendering Details
+### GridCanvas Component
 
-Each grid is a `<canvas>` element. A shared `GridCanvas` class handles:
+The `GridCanvas` class is the core reusable component. Each grid is an instance. It handles:
 
-- Drawing the grid lines and filled cells
-- Hit-testing (pixel coordinates → cell coordinates)
-- Zoom and pan state
-- Synchronized scrolling (threading and drawdown share horizontal scroll; treadling and drawdown share vertical scroll)
-- **Progress highlight overlays** (vertical band for threading, horizontal band for treadling)
+- Virtualized rendering (only visible cells drawn)
+- Viewport clipping with configurable max width/height
+- HiDPI-aware canvas sizing
+- Hit-testing (pixel → cell coordinates, accounting for scroll)
+- Hover highlight
+- Click and drag-to-paint (mousedown + mousemove fires onCellClick per cell)
+- Scroll via wheel events
+- Synchronized scrolling via `setScrollX`/`setScrollY` + `onScroll` callback
 
-Copy
-Cell size: 16–32px (adjustable via zoom)
-Grid lines: 1px, light gray
-Filled cells: solid color
-Selection highlight: border or glow on hover
-Progress highlight: translucent colored band with border
-
+```
+Cell size: 20px (fixed for now)
+Grid lines: 0.5px, #cccccc
+Filled cells: solid color (monochrome) or per-cell color
+Hover: blue translucent highlight + border
+```
 
 ---
 
-## 6. Progress Tracking
+## 6. Progress Tracking (NOT YET IMPLEMENTED)
 
 ### Overview
 
-The two sequential tasks a weaver performs at the loom:
+Two sequential phases a weaver performs:
 
 | Phase | Task | Tracks | Direction |
 |---|---|---|---|
-| **Setup** | Threading the warp through heddles | `currentThread` — which warp end | Left → right (column by column) |
-| **Weaving** | Throwing each pick | `currentPick` — which weft row | Top → bottom (row by row) |
+| **Setup** | Threading warp through heddles | `currentThread` — which warp end | Left → right |
+| **Weaving** | Throwing each pick | `currentPick` — which weft row | Top → bottom |
 
-These are independent — a weaver completes threading during setup, then tracks treadling during weaving.
+### Visual Design
 
-### Threading Progress — Visual Design
+- **Threading progress**: vertical highlight band (blue) on threading, drawdown, and warp color bar
+- **Treadling progress**: horizontal highlight band (gold) on treadling, drawdown, and weft color bar
+- When both active: crosshair on drawdown
 
-A **vertical highlight band** on the **threading grid**, **drawdown**, and **warp color bar** showing the current warp end:
+### Progress Panel
 
-Copy
-               THREADING
-  ┌───┬───┬───╫───╫───┬───┬───┐
-  │   │   │   ║   ║   │   │   │  shaft 4
-  ├───┼───┼───╫───╫───┼───┼───┤
-  │   │ ■ │   ║   ║   │   │ ■ │  shaft 3
-  ├───┼───┼───╫───╫───┼───┼───┤
-  │ ■ │   │   ║ ■ ║   │ ■ │   │  shaft 2
-  ├───┼───┼───╫───╫───┼───┼───┤
-  │   │   │ ■ ║   ║ ■ │   │   │  shaft 1
-  └───┴───┴───╫───╫───┴───┴───┘
-               ▲
-          End 4 of 120
+Collapsible sidebar panel with:
+- Current position / total (e.g., "End 87 / 120")
+- Progress bar
+- Prev / Next buttons
+- Reset button
 
-
-The highlight extends down through the drawdown so the weaver can see the full column in context.
-
-### Treadling Progress — Visual Design
-
-A **horizontal highlight band** on the **treadling grid**, **drawdown**, and **weft color bar** showing the current pick:
-
-Copy
-                              TREADLING
-                            ┌───────────┐
-                            │           │
-                            │   □ □ ■   │  pick 3
-  ═══════════════════════════════════════════════════
-  ▸ CURRENT PICK → pick 4  │   □ ■ □   │  pick 4
-  ═══════════════════════════════════════════════════
-                            │   ■ □ □   │  pick 5
-                            │           │
-                            └───────────┘
-
-
-The horizontal highlight extends across the drawdown so the weaver sees what the fabric should look like at this row.
-
-### When Both Are Active
-
-If the weaver has both a threading position and a treadling position, the two highlights form a **crosshair** on the drawdown — the vertical threading band and horizontal treadling band intersect. This is a natural visual and doesn't need special handling.
-
-### Progress Panel UI
-
-A collapsible panel in the sidebar:
-
-Copy
-┌─ Weaving Progress ──────────────────────────┐
-│                                              │
-│  Threading:                                  │
-│  End 87 / 120                    [Reset]     │
-│  ░░░░░░░░░░░░░███████░░░░░░                 │
-│  [◀ Prev End]     [Next End ▶]               │
-│                                              │
-│  ─────────────────────────────               │
-│                                              │
-│  Treadling:                                  │
-│  Pick 47 / 200                   [Reset]     │
-│  ░░░░████████░░░░░░░░░░░░░░░                │
-│  [◀ Prev Pick]   [Next Pick ▶]              │
-│                                              │
-└──────────────────────────────────────────────┘
-
-
-### Interaction Model
-
-| Action | Result |
-|---|---|
-| **Click "Next End"** or press **→** | Advance `currentThread` by 1, scroll to keep it visible |
-| **Click "Prev End"** or press **←** | Move `currentThread` back by 1 |
-| **Click "Next Pick"** or press **Space** or **↓** | Advance `currentPick` by 1, scroll to keep it visible |
-| **Click "Prev Pick"** or press **↑** | Move `currentPick` back by 1 |
-| **Click a column** in threading while tracking | Jump `currentThread` to that column |
-| **Click a row** in treadling while tracking | Jump `currentPick` to that row |
-| **Reset** | Set respective counter back to -1 (not started) |
-| Reach last end / last pick | Show a "✓ Complete!" indicator, stop advancing |
-
-### Keyboard Shortcut Summary
+### Keyboard Shortcuts
 
 | Key | Action |
 |---|---|
@@ -377,295 +301,98 @@ Copy
 | `↓` or `Space` | Next pick |
 | `↑` | Previous pick |
 
-> Keyboard shortcuts only fire when the app is focused and no text input is active.
+Only active when no text input is focused.
 
-### Auto-Scroll Behavior
+### Auto-Scroll
 
-When the weaver advances the position, the view should **keep the current position visible** without jarring jumps:
-
-Copy
-function advancePick(draft, drawdownCanvas, treadlingCanvas) {
-  draft.progress.currentPick++;
-
-  const visibleRows = Math.floor(drawdownCanvas.height / cellSize);
-  const targetScroll = (draft.progress.currentPick
-    - Math.floor(visibleRows / 2)) * cellSize;
-
-  drawdownCanvas.smoothScrollToY(Math.max(0, targetScroll));
-  treadlingCanvas.smoothScrollToY(Math.max(0, targetScroll));
-}
-
-function advanceThread(draft, drawdownCanvas, threadingCanvas) {
-  draft.progress.currentThread++;
-
-  const visibleCols = Math.floor(drawdownCanvas.width / cellSize);
-  const targetScroll = (draft.progress.currentThread
-    - Math.floor(visibleCols / 2)) * cellSize;
-
-  drawdownCanvas.smoothScrollToX(Math.max(0, targetScroll));
-  threadingCanvas.smoothScrollToX(Math.max(0, targetScroll));
-}
-
-
-### Rendering Implementation
-
-Copy
-// Treadling highlight — drawn on drawdown and treadling canvases
-function drawPickHighlight(ctx, currentPick, scrollY, cellSize) {
-  if (currentPick < 0) return;
-
-  const y = (currentPick * cellSize) - scrollY;
-
-  ctx.fillStyle = 'rgba(255, 200, 0, 0.25)';
-  ctx.fillRect(0, y, ctx.canvas.width, cellSize);
-
-  ctx.strokeStyle = 'rgba(255, 160, 0, 0.8)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(0, y, ctx.canvas.width, cellSize);
-}
-
-// Threading highlight — drawn on drawdown and threading canvases
-function drawThreadHighlight(ctx, currentThread, scrollX, cellSize) {
-  if (currentThread < 0) return;
-
-  const x = (currentThread * cellSize) - scrollX;
-
-  ctx.fillStyle = 'rgba(100, 180, 255, 0.25)';
-  ctx.fillRect(x, 0, cellSize, ctx.canvas.height);
-
-  ctx.strokeStyle = 'rgba(60, 140, 220, 0.8)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(x, 0, cellSize, ctx.canvas.height);
-}
-
-
-Two different colors (gold for treadling, blue for threading) so they're visually distinct when both are active.
-
-### Persistence
-
-Progress auto-saves with every advance/retreat — it's just part of the draft object:
-
-Copy
-function advancePick(draft) {
-  draft.progress.currentPick++;
-  draft.updatedAt = new Date().toISOString();
-  StorageService.saveDraft(draft);
-}
-
-
-The weaver can close the browser, come back later, and be exactly where they left off.
+Advancing position should keep the highlight centered in the viewport. Progress auto-saves with every advance.
 
 ---
 
-## 7. Storage Service Design
+## 7. Storage Service
 
-The abstraction that makes future migration easy:
+Implemented in `services/storage.js`. Async interface (localStorage now, API later):
 
-Copy
-// services/storage.js
+- `listDrafts()` → `[{ id, name, updatedAt }]` sorted by most recent
+- `loadDraft(id)` → full Draft object or null
+- `saveDraft(draft)` → upserts by id, sets updatedAt
+- `deleteDraft(id)` → removes by id
 
-const StorageService = {
-  // Returns array of { id, name, updatedAt } for listing
-  async listDrafts() { ... },
-
-  // Returns full Draft object or null
-  async loadDraft(id) { ... },
-
-  // Accepts full Draft object, upserts by id
-  async saveDraft(draft) { ... },
-
-  // Deletes by id
-  async deleteDraft(id) { ... },
-};
-
-
-**Phase 1 implementation:** All methods use `localStorage` with `JSON.stringify/parse`. The `async` signature is intentional — it costs nothing now and avoids a rewrite when swapping to `fetch()` calls later.
-
-**Phase 3 swap:**
-
-Copy
-async saveDraft(draft) {
-  // was: localStorage.setItem(...)
-  await fetch(`/api/drafts/${draft.id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(draft),
-  });
-}
-
-
-Nothing else in the app changes.
+All drafts stored under a single `weaving-drafts` localStorage key. Auto-save fires on every edit. localStorage (5–10 MB) holds 1,000+ drafts easily.
 
 ---
 
-## 8. File I/O
+## 8. File I/O (NOT YET IMPLEMENTED)
 
 ### WIF (Weaving Information File) — Phase 2
 
-WIF is the industry-standard interchange format. It's an INI-like text file:
+Industry-standard INI-like format. Straightforward string parsing — no libraries needed.
 
-Copy
-[WIF]
-Version=1.1
-[CONTENTS]
-Threading=true
-Tieup=true
-Treadling=true
-Color Table=true
-[THREADING]
-1=4
-2=3
-3=2
-4=1
-[TIEUP]
-1=1,2
-2=2,3
-3=3,4
-4=1,4
-[TREADLING]
-1=1
-2=2
-3=3
-4=4
-[COLOR TABLE]
-1=0,0,0
-2=255,255,255
+### PNG Export — Phase 1 (remaining)
 
-
-Parsing and generating this is straightforward string manipulation — no libraries needed.
-
-### PNG Export
-
-Copy
-// Render all four grids + color bars onto a single offscreen canvas
-const offscreen = document.createElement('canvas');
-// ... draw grids ...
-const link = document.createElement('a');
-link.download = `${draft.name}.png`;
-link.href = offscreen.toDataURL('image/png');
-link.click();
-
+Render all grids + color bars onto a single offscreen canvas, trigger download.
 
 ---
 
-## 9. Key Algorithms
-
-### Drawdown Computation
-
-Copy
-// model/drawdown.js
-function computeDrawdown(draft) {
-  const { threading, treadling, tieup, warpColors, weftColors } = draft;
-  const width = threading.length;
-  const height = treadling.length;
-  const pixels = new Array(height);
-
-  for (let y = 0; y < height; y++) {
-    pixels[y] = new Array(width);
-    const treadle = treadling[y];
-    for (let x = 0; x < width; x++) {
-      const shaft = threading[x];
-      const warpOnTop = tieup[shaft][treadle];
-      pixels[y][x] = warpOnTop ? warpColors[x] : weftColors[y];
-    }
-  }
-  return pixels;
-}
-
-
-Time complexity: O(warp × weft). For 500×500 = 250,000 cells this runs in < 1ms. No performance concerns even for very large drafts.
-
-### Synchronized Scrolling
-
-Threading and drawdown share a horizontal axis. Treadling and drawdown share a vertical axis.
-
-Copy
-drawdownCanvas.onScroll = (scrollX, scrollY) => {
-  threadingCanvas.setScrollX(scrollX);
-  treadlingCanvas.setScrollY(scrollY);
-  warpColorBar.setScrollX(scrollX);
-  weftColorBar.setScrollY(scrollY);
-};
-
-
----
-
-## 10. Defaults & Presets
-
-### New Draft Defaults
-
-| Setting | Default |
-|---|---|
-| Shafts | 4 |
-| Treadles | 6 |
-| Warp ends | 60 |
-| Weft picks | 60 |
-| Threading | Straight draw (1-2-3-4-1-2-3-4...) |
-| Tie-up | Plain weave |
-| Treadling | Straight treadle (1-2-3-4-5-6-1-2...) |
-| Warp color | Black (`#000000`) |
-| Weft color | White (`#FFFFFF`) |
-| Progress | Both at -1 (not started) |
-
-Starting with a valid default draft means the user sees a working pattern immediately and can modify from there.
-
-### Threading Presets (Phase 2)
-
-- Straight draw
-- Point draw (1-2-3-4-3-2-1...)
-- Broken twill
-- Custom repeat
-
----
-
-## 11. Development Plan
+## 9. Development Plan
 
 ### Phase 1 — MVP
 
-| Step | Milestone |
+| Step | Status |
 |---|---|
-| **1** | ~~Data model, drawdown computation, single canvas grid rendering with click interaction~~ ✅ DONE |
-| **2** | ~~All four grids wired together, drawdown auto-updates, basic layout~~ ✅ DONE |
-| **3** | ~~Color palette, warp/weft color bars, localStorage save/load, draft management~~ ✅ DONE |
-| **4** | Progress tracking (threading + treadling), progress panel, keyboard shortcuts, auto-scroll |
-| **5** | Pan/zoom, PNG export, polish, deploy to GitHub Pages |
+| **1** | ✅ Data model, drawdown computation, canvas grid with click interaction |
+| **2** | ✅ All four grids wired, drawdown auto-updates, synchronized scrolling, layout |
+| **3** | ✅ Color palette, color bars, drag-to-paint, fill/repeat tools, localStorage, draft management |
+| **3b** | ✅ Sequence pattern tools for threading/treadling (mini grid + presets) |
+| **4** | ⬜ Progress tracking, progress panel, keyboard shortcuts, auto-scroll |
+| **5** | ⬜ Configure loom setup UI, PNG export, polish, deploy to GitHub Pages |
 
 ### Phase 2 — Power Features
 
 - WIF import/export
-- Undo/redo (command stack on draft state)
-- Drag-to-paint
-- Threading presets
-- JSON file backup
+- JSON file download/upload for backup
+- Undo/redo (command stack)
+- Drawdown view modes (structural, color, interlacement)
+- Zoom controls
+- Print-friendly stylesheet
 
 ### Phase 3 — Backend & Sharing
 
-- Choose a BaaS (Firebase/Supabase) or build a simple REST API
-- Swap `StorageService` implementation
-- Add auth
+- BaaS or REST API
+- Swap StorageService implementation
+- User accounts + auth
 - Shareable URLs
 - Public gallery
 
 ---
 
-## 12. Risks & Mitigations
+## 10. Known Bugs
 
-| Risk | Likelihood | Mitigation |
-|---|---|---|
-| Canvas performance on very large drafts (1000+ threads) | Low | Virtualize rendering: only draw visible cells. Offscreen buffer for static areas. |
-| localStorage data loss | Medium | Prominent "Download file" button. Auto-export reminder. |
-| WIF format edge cases | Medium | Test against files from multiple weaving programs. The spec is loose — be lenient on import, strict on export. |
-| Scope creep | High | Stick to MVP feature list. Ship Phase 1 before starting Phase 2. |
-| Mobile usability | Medium | Canvas grids are hard on small screens. Accept that desktop is the primary target; ensure it doesn't *break* on mobile. |
-| Keyboard conflicts with progress shortcuts | Low | Only bind arrow keys / space when no input is focused. Use a `keydown` handler with target checks. |
+- **Weft color bar alignment**: the `&nbsp;` label spacer for vertical alignment is fragile — may break if label font/size changes
+- **Drag-to-paint on grids other than color bars**: mouseup listener is on `window`, so dragging that starts on one grid and ends on another may leave stale drag state
+- **No loom configuration UI yet**: shafts, treadles, warp count, weft count are hardcoded defaults — no way to change them after draft creation
+- **Pattern tool mini-grid**: when adding/removing slots, the entire builder DOM is rebuilt which can feel janky
+- **Color bar scroll sync**: scrolling very fast can cause slight desync between grids (no rAF batching)
+- **No input validation on draft load**: corrupted localStorage data will crash the app
 
 ---
 
-## 13. Open Questions
+## 11. Risks & Mitigations
+
+| Risk | Likelihood | Mitigation |
+|---|---|---|
+| Canvas performance on very large drafts (1000+ threads) | Low | Already virtualized — only visible cells rendered |
+| localStorage data loss | Medium | JSON download/upload planned for Phase 2. Consider auto-export reminder |
+| WIF format edge cases | Medium | Test against files from multiple programs. Be lenient on import |
+| Scope creep | High | Stick to MVP. Ship Phase 1 before Phase 2 |
+| Mobile usability | Medium | Desktop is primary target. Don't break on mobile but don't optimize for it |
+
+---
+
+## 12. Open Questions
 
 - **Multi-treadle per pick?** Some weaving styles press multiple treadles simultaneously. DEFER.
-- **Liftplan mode?** An alternative to tie-up + treadling where the user directly specifies which shafts to raise per pick. Common for table looms and dobby looms. DEFER
-- **Threading direction?** Some weavers thread right-to-left. Should the progress tracker support both directions? YES
-- **Yarn-level simulation?** Showing thread crossings rather than solid color blocks. Likely Phase 3+ but worth considering in the data model.
-- **Mobile support level?** Functional-but-basic, or fully optimized touch interactions? BASIC.
-- **Progress notifications?** E.g. "You're 50% through threading!" — helpful or annoying? YES.
+- **Liftplan mode?** Alternative to tie-up + treadling for table/dobby looms. DEFER.
+- **Threading direction?** Some weavers thread right-to-left. Progress tracker should support both. YES — implement when building progress tracking.
+- **Yarn-level simulation?** Thread crossings instead of solid blocks. Phase 3+.
+- **Progress notifications?** "You're 50% through threading!" YES — implement as part of progress panel.
