@@ -54,12 +54,40 @@ header .draft-name {
 
 .draft-layout {
   display: grid;
-  grid-template-columns: auto auto;
-  grid-template-rows: auto auto;
+  grid-template-columns: auto auto auto;
+  grid-template-rows: auto auto auto;
   gap: 2px;
-  background: var(--border);
-  border: 1px solid var(--border);
   width: fit-content;
+  align-items: end; /* threading and tieup align at bottom to match drawdown top */
+}
+
+/* Row 1 */
+.draft-layout > :nth-child(1) { grid-column: 1; grid-row: 1; } /* spacer */
+.draft-layout > :nth-child(2) { grid-column: 2; grid-row: 1; } /* threading */
+.draft-layout > :nth-child(3) { grid-column: 3; grid-row: 1; } /* tieup */
+
+/* Row 2 */
+.draft-layout > :nth-child(4) { grid-column: 1; grid-row: 2; } /* weft colors */
+.draft-layout > :nth-child(5) { grid-column: 2; grid-row: 2; } /* drawdown */
+.draft-layout > :nth-child(6) { grid-column: 3; grid-row: 2; } /* treadling */
+
+/* Row 3 */
+.draft-layout > :nth-child(7) { grid-column: 1; grid-row: 3; } /* spacer */
+.draft-layout > :nth-child(8) { grid-column: 2; grid-row: 3; } /* warp colors */
+.draft-layout > :nth-child(9) { grid-column: 3; grid-row: 3; } /* spacer */
+
+/* Row 2 items should align at top */
+.draft-layout > :nth-child(4),
+.draft-layout > :nth-child(5),
+.draft-layout > :nth-child(6) {
+  align-self: start;
+}
+
+/* Row 3 items align at top */
+.draft-layout > :nth-child(7),
+.draft-layout > :nth-child(8),
+.draft-layout > :nth-child(9) {
+  align-self: start;
 }
 
 .grid-section {
@@ -70,9 +98,18 @@ header .draft-name {
   align-items: center;
 }
 
+.grid-section.spacer {
+  background: transparent;
+  padding: 0;
+}
+
 .grid-section canvas {
   display: block;
   cursor: crosshair;
+}
+
+.grid-section.drawdown canvas {
+  cursor: default;
 }
 
 .grid-label {
@@ -82,30 +119,6 @@ header .draft-name {
   letter-spacing: 0.5px;
   color: var(--text-muted);
   margin-bottom: 4px;
-}
-
-.grid-section.threading {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.grid-section.tieup {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.grid-section.drawdown {
-  grid-column: 1;
-  grid-row: 2;
-}
-
-.grid-section.treadling {
-  grid-column: 2;
-  grid-row: 2;
-}
-
-.grid-section.drawdown canvas {
-  cursor: default;
 }
 
 .info-bar {

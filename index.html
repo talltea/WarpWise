@@ -14,6 +14,8 @@
 
   <div class="main-container">
     <div class="draft-layout">
+      <!--  Row 1: weft-color-spacer | threading | tieup  -->
+      <div class="grid-section spacer"></div>
       <div class="grid-section threading">
         <span class="grid-label">Threading</span>
         <canvas id="threading-canvas"></canvas>
@@ -21,6 +23,12 @@
       <div class="grid-section tieup">
         <span class="grid-label">Tie-up</span>
         <canvas id="tieup-canvas"></canvas>
+      </div>
+
+      <!--  Row 2: weft colors | drawdown | treadling  -->
+      <div class="grid-section weft-colors">
+        <span class="grid-label">Weft</span>
+        <canvas id="weft-color-canvas"></canvas>
       </div>
       <div class="grid-section drawdown">
         <span class="grid-label">Drawdown</span>
@@ -30,6 +38,14 @@
         <span class="grid-label">Treadling</span>
         <canvas id="treadling-canvas"></canvas>
       </div>
+
+      <!--  Row 3: spacer | warp colors | spacer  -->
+      <div class="grid-section spacer"></div>
+      <div class="grid-section warp-colors">
+        <span class="grid-label">Warp</span>
+        <canvas id="warp-color-canvas"></canvas>
+      </div>
+      <div class="grid-section spacer"></div>
     </div>
   </div>
 

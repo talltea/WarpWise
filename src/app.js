@@ -4,6 +4,9 @@ import { createDraft } from './model/draft.js';
 import { computeDrawdown } from './model/drawdown.js';
 import { GridCanvas } from './ui/gridCanvas.js';
 
+const CELL_SIZE = 20;
+const MAX_GRID_PX = 800; // max viewport size for large grids
+
 const draft = createDraft();
 let drawdownPixels = computeDrawdown(draft);
 
@@ -12,13 +15,12 @@ function rebuildDrawdown() {
 }
 
 // --- Threading grid ---
-// Rows = shafts (bottom shaft = index 0 shown at bottom, so row 0 = top = highest shaft)
-// Cols = warp ends
 const threadingGrid = new GridCanvas(document.getElementById('threading-canvas'), {
   rows: draft.loom.shafts,
   cols: draft.loom.warpCount,
+  cellSize: CELL_SIZE,
+  maxViewportWidth: MAX_GRID_PX,
   getCellFilled(row, col) {
-    // Row 0 is the top of the canvas = highest shaft index
     const shaft = draft.loom.shafts - 1 - row;
     return draft.threading[col] === shaft;
   },
@@ -29,13 +31,17 @@ const threadingGrid = new GridCanvas(document.getElementById('threading-canvas')
     threadingGrid.render();
     drawdownGrid.render();
   },
+  onScroll({ scrollX }) {
+    drawdownGrid.setScrollX(scrollX);
+    warpColorBar.setScrollX(scrollX);
+  },
 });
 
 // --- Tie-up grid ---
-// Rows = shafts (same orientation as threading), Cols = treadles
 const tieupGrid = new GridCanvas(document.getElementById('tieup-canvas'), {
   rows: draft.loom.shafts,
   cols: draft.loom.treadles,
+  cellSize: CELL_SIZE,
   getCellFilled(row, col) {
     const shaft = draft.loom.shafts - 1 - row;
     return draft.tieup[shaft][col];
@@ -50,10 +56,11 @@ const tieupGrid = new GridCanvas(document.getElementById('tieup-canvas'), {
 });
 
 // --- Treadling grid ---
-// Rows = weft picks, Cols = treadles
 const treadlingGrid = new GridCanvas(document.getElementById('treadling-canvas'), {
   rows: draft.loom.weftCount,
   cols: draft.loom.treadles,
+  cellSize: CELL_SIZE,
+  maxViewportHeight: MAX_GRID_PX,
   getCellFilled(row, col) {
     return draft.treadling[row] === col;
   },
@@ -63,14 +70,57 @@ const treadlingGrid = new GridCanvas(document.getElementById('treadling-canvas')
     treadlingGrid.render();
     drawdownGrid.render();
   },
+  onScroll({ scrollY }) {
+    drawdownGrid.setScrollY(scrollY);
+    weftColorBar.setScrollY(scrollY);
+  },
 });
 
 // --- Drawdown grid (read-only, color) ---
 const drawdownGrid = new GridCanvas(document.getElementById('drawdown-canvas'), {
   rows: draft.loom.weftCount,
   cols: draft.loom.warpCount,
+  cellSize: CELL_SIZE,
+  maxViewportWidth: MAX_GRID_PX,
+  maxViewportHeight: MAX_GRID_PX,
   getCellColor(row, col) {
     return drawdownPixels[row][col];
+  },
+  onScroll({ scrollX, scrollY }) {
+    threadingGrid.setScrollX(scrollX);
+    warpColorBar.setScrollX(scrollX);
+    treadlingGrid.setScrollY(scrollY);
+    weftColorBar.setScrollY(scrollY);
+  },
+});
+
+// --- Warp color bar (horizontal, below drawdown) ---
+const warpColorBar = new GridCanvas(document.getElementById('warp-color-canvas'), {
+  rows: 1,
+  cols: draft.loom.warpCount,
+  cellSize: CELL_SIZE,
+  maxViewportWidth: MAX_GRID_PX,
+  getCellColor(row, col) {
+    return draft.warpColors[col];
+  },
+  onScroll({ scrollX }) {
+    threadingGrid.setScrollX(scrollX);
+    drawdownGrid.setScrollX(scrollX);
+  },
+});
+
+// --- Weft color bar (vertical, left of drawdown) ---
+const weftColorBar = new GridCanvas(document.getElementById('weft-color-canvas'), {
+  rows: draft.loom.weftCount,
+  cols: 1,
+  cellSize: CELL_SIZE,
+  maxViewportHeight: MAX_GRID_PX,
+  getCellColor(row) {
+    return draft.weftColors[row];
+  },
+  onScroll({ scrollY }) {
+    treadlingGrid.setScrollY(scrollY);
+    drawdownGrid.setScrollY(scrollY);
   },
 });
 

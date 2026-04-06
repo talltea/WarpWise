@@ -624,8 +624,8 @@ Starting with a valid default draft means the user sees a working pattern immedi
 
 | Step | Milestone |
 |---|---|
-| **1** | Data model, drawdown computation, single canvas grid rendering with click interaction |
-| **2** | All four grids wired together, drawdown auto-updates, basic layout |
+| **1** | ~~Data model, drawdown computation, single canvas grid rendering with click interaction~~ ✅ DONE |
+| **2** | ~~All four grids wired together, drawdown auto-updates, basic layout~~ ✅ DONE |
 | **3** | Color palette, warp/weft color bars, localStorage save/load, draft management |
 | **4** | Progress tracking (threading + treadling), progress panel, keyboard shortcuts, auto-scroll |
 | **5** | Pan/zoom, PNG export, polish, deploy to GitHub Pages |
