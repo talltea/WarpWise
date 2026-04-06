@@ -70,26 +70,50 @@ export class GridCanvas {
   }
 
   _bindEvents() {
-    this.canvas.addEventListener('click', (e) => {
-      const { row, col } = this._eventToCell(e);
-      if (row >= 0 && row < this.rows && col >= 0 && col < this.cols) {
-        this.onCellClick?.(row, col);
-      }
+    this._dragging = false;
+    this._lastDragCell = null;
+
+    this.canvas.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      const cell = this._eventToCell(e);
+      if (cell.row < 0 || cell.row >= this.rows || cell.col < 0 || cell.col >= this.cols) return;
+      this._dragging = true;
+      this._lastDragCell = cell;
+      this.onCellClick?.(cell.row, cell.col);
     });
 
-    this.canvas.addEventListener('mousemove', (e) => {
-      const { row, col } = this._eventToCell(e);
-      if (row !== this.hoverRow || col !== this.hoverCol) {
-        this.hoverRow = row;
-        this.hoverCol = col;
+    window.addEventListener('mousemove', (e) => {
+      const cell = this._eventToCell(e);
+
+      // Drag-to-paint: fire onCellClick for each new cell entered while dragging
+      if (this._dragging) {
+        if (cell.row >= 0 && cell.row < this.rows &&
+            cell.col >= 0 && cell.col < this.cols &&
+            (cell.row !== this._lastDragCell.row || cell.col !== this._lastDragCell.col)) {
+          this._lastDragCell = cell;
+          this.onCellClick?.(cell.row, cell.col);
+        }
+      }
+
+      // Hover highlight
+      if (cell.row !== this.hoverRow || cell.col !== this.hoverCol) {
+        this.hoverRow = cell.row;
+        this.hoverCol = cell.col;
         this.render();
       }
     });
 
+    window.addEventListener('mouseup', () => {
+      this._dragging = false;
+      this._lastDragCell = null;
+    });
+
     this.canvas.addEventListener('mouseleave', () => {
-      this.hoverRow = -1;
-      this.hoverCol = -1;
-      this.render();
+      if (!this._dragging) {
+        this.hoverRow = -1;
+        this.hoverCol = -1;
+        this.render();
+      }
     });
 
     this.canvas.addEventListener('wheel', (e) => {

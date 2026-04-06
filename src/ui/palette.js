@@ -1,17 +1,5 @@
-// ui/palette.js — Color palette UI component
+// ui/palette.js — Color palette: active color + swatches
 
-/**
- * Creates a palette panel that lets the user:
- * - Select a color from the draft's palette
- * - Add custom colors via a native color picker
- * - See which color is currently selected
- *
- * @param {HTMLElement} container - Element to render into
- * @param {object} options
- * @param {string[]} options.colors - Initial palette colors
- * @param {function} options.onColorSelect - (color) callback when a color is picked
- * @param {function} options.onPaletteChange - (newPalette) callback when palette is modified
- */
 export class PalettePanel {
   constructor(container, options) {
     this.container = container;
@@ -25,52 +13,72 @@ export class PalettePanel {
   render() {
     this.container.innerHTML = '';
 
-    const label = document.createElement('span');
-    label.className = 'grid-label';
-    label.textContent = 'Palette';
-    this.container.appendChild(label);
+    // Active color
+    const activeSwatch = document.createElement('button');
+    activeSwatch.className = 'palette-active-swatch';
+    activeSwatch.style.backgroundColor = this.selectedColor;
+    activeSwatch.title = 'Click to change active color';
+    activeSwatch.addEventListener('click', () => {
+      this._openPicker(this.selectedColor, (c) => {
+        this.selectedColor = c;
+        this.onColorSelect?.(c);
+        this.render();
+      });
+    });
+    this.container.appendChild(activeSwatch);
 
-    const swatchRow = document.createElement('div');
-    swatchRow.className = 'palette-swatches';
-
-    for (const color of this.colors) {
-      const swatch = document.createElement('button');
-      swatch.className = 'palette-swatch';
-      if (color === this.selectedColor) swatch.classList.add('selected');
-      swatch.style.backgroundColor = color;
-      swatch.title = color;
-      swatch.addEventListener('click', () => {
+    // Swatches
+    const row = document.createElement('div');
+    row.className = 'palette-swatches';
+    for (let i = 0; i < this.colors.length; i++) {
+      const color = this.colors[i];
+      const sw = document.createElement('button');
+      sw.className = 'palette-swatch';
+      if (color === this.selectedColor) sw.classList.add('selected');
+      sw.style.backgroundColor = color;
+      sw.title = color;
+      sw.addEventListener('click', () => {
         this.selectedColor = color;
         this.onColorSelect?.(color);
         this.render();
       });
-      swatchRow.appendChild(swatch);
+      sw.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        this._openPicker(color, (c) => {
+          this.colors[i] = c;
+          this.selectedColor = c;
+          this.onColorSelect?.(c);
+          this.onPaletteChange?.(this.colors);
+          this.render();
+        });
+      });
+      row.appendChild(sw);
     }
-
-    // "Add color" button
     const addBtn = document.createElement('button');
     addBtn.className = 'palette-swatch palette-add';
     addBtn.textContent = '+';
     addBtn.title = 'Add color';
     addBtn.addEventListener('click', () => {
-      const input = document.createElement('input');
-      input.type = 'color';
-      input.value = this.selectedColor;
-      input.addEventListener('input', () => {
-        const newColor = input.value;
-        if (!this.colors.includes(newColor)) {
-          this.colors.push(newColor);
+      this._openPicker(this.selectedColor, (c) => {
+        if (!this.colors.includes(c)) {
+          this.colors.push(c);
           this.onPaletteChange?.(this.colors);
         }
-        this.selectedColor = newColor;
-        this.onColorSelect?.(newColor);
+        this.selectedColor = c;
+        this.onColorSelect?.(c);
         this.render();
       });
-      input.click();
     });
-    swatchRow.appendChild(addBtn);
+    row.appendChild(addBtn);
+    this.container.appendChild(row);
+  }
 
-    this.container.appendChild(swatchRow);
+  _openPicker(startColor, onPick) {
+    const input = document.createElement('input');
+    input.type = 'color';
+    input.value = startColor;
+    input.addEventListener('input', () => onPick(input.value));
+    input.click();
   }
 
   setColors(colors) {

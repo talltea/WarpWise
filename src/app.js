@@ -4,6 +4,7 @@ import { createDraft } from './model/draft.js';
 import { computeDrawdown } from './model/drawdown.js';
 import { GridCanvas } from './ui/gridCanvas.js';
 import { PalettePanel } from './ui/palette.js';
+import { ColorTools } from './ui/colorTools.js';
 import { StorageService } from './services/storage.js';
 
 const CELL_SIZE = 20;
@@ -32,7 +33,15 @@ function autoSave() {
   StorageService.saveDraft(draft);
 }
 
-// --- Load a draft into the UI, rebuilding all grids ---
+function getActiveColor() {
+  return selectedColor;
+}
+
+function getPalette() {
+  return draft.palette;
+}
+
+// --- Load a draft into the UI ---
 function loadDraftIntoUI(d) {
   draft = d;
   rebuildDrawdown();
@@ -46,10 +55,36 @@ function loadDraftIntoUI(d) {
   weftColorBar.update({ rows: draft.loom.weftCount });
 
   palette.setColors(draft.palette);
-  document.getElementById('draft-name').textContent = draft.name;
+  draftNameInput.value = draft.name;
   refreshDraftList();
   renderAll();
 }
+
+// ============================================================
+// Grids
+// ============================================================
+
+// --- Warp color bar (horizontal, above threading) ---
+const warpColorBar = new GridCanvas(document.getElementById('warp-color-canvas'), {
+  rows: 1,
+  cols: draft.loom.warpCount,
+  cellSize: CELL_SIZE,
+  maxViewportWidth: MAX_GRID_PX,
+  getCellColor(row, col) {
+    return draft.warpColors[col];
+  },
+  onCellClick(row, col) {
+    draft.warpColors[col] = selectedColor;
+    rebuildDrawdown();
+    warpColorBar.render();
+    drawdownGrid.render();
+    autoSave();
+  },
+  onScroll({ scrollX }) {
+    threadingGrid.setScrollX(scrollX);
+    drawdownGrid.setScrollX(scrollX);
+  },
+});
 
 // --- Threading grid ---
 const threadingGrid = new GridCanvas(document.getElementById('threading-canvas'), {
@@ -94,68 +129,6 @@ const tieupGrid = new GridCanvas(document.getElementById('tieup-canvas'), {
   },
 });
 
-// --- Treadling grid ---
-const treadlingGrid = new GridCanvas(document.getElementById('treadling-canvas'), {
-  rows: draft.loom.weftCount,
-  cols: draft.loom.treadles,
-  cellSize: CELL_SIZE,
-  maxViewportHeight: MAX_GRID_PX,
-  getCellFilled(row, col) {
-    return draft.treadling[row] === col;
-  },
-  onCellClick(row, col) {
-    draft.treadling[row] = col;
-    rebuildDrawdown();
-    treadlingGrid.render();
-    drawdownGrid.render();
-    autoSave();
-  },
-  onScroll({ scrollY }) {
-    drawdownGrid.setScrollY(scrollY);
-    weftColorBar.setScrollY(scrollY);
-  },
-});
-
-// --- Drawdown grid (read-only, color) ---
-const drawdownGrid = new GridCanvas(document.getElementById('drawdown-canvas'), {
-  rows: draft.loom.weftCount,
-  cols: draft.loom.warpCount,
-  cellSize: CELL_SIZE,
-  maxViewportWidth: MAX_GRID_PX,
-  maxViewportHeight: MAX_GRID_PX,
-  getCellColor(row, col) {
-    return drawdownPixels[row][col];
-  },
-  onScroll({ scrollX, scrollY }) {
-    threadingGrid.setScrollX(scrollX);
-    warpColorBar.setScrollX(scrollX);
-    treadlingGrid.setScrollY(scrollY);
-    weftColorBar.setScrollY(scrollY);
-  },
-});
-
-// --- Warp color bar (horizontal, below drawdown) ---
-const warpColorBar = new GridCanvas(document.getElementById('warp-color-canvas'), {
-  rows: 1,
-  cols: draft.loom.warpCount,
-  cellSize: CELL_SIZE,
-  maxViewportWidth: MAX_GRID_PX,
-  getCellColor(row, col) {
-    return draft.warpColors[col];
-  },
-  onCellClick(row, col) {
-    draft.warpColors[col] = selectedColor;
-    rebuildDrawdown();
-    warpColorBar.render();
-    drawdownGrid.render();
-    autoSave();
-  },
-  onScroll({ scrollX }) {
-    threadingGrid.setScrollX(scrollX);
-    drawdownGrid.setScrollX(scrollX);
-  },
-});
-
 // --- Weft color bar (vertical, left of drawdown) ---
 const weftColorBar = new GridCanvas(document.getElementById('weft-color-canvas'), {
   rows: draft.loom.weftCount,
@@ -178,7 +151,51 @@ const weftColorBar = new GridCanvas(document.getElementById('weft-color-canvas')
   },
 });
 
-// --- Color palette ---
+// --- Drawdown grid (read-only, color) ---
+const drawdownGrid = new GridCanvas(document.getElementById('drawdown-canvas'), {
+  rows: draft.loom.weftCount,
+  cols: draft.loom.warpCount,
+  cellSize: CELL_SIZE,
+  maxViewportWidth: MAX_GRID_PX,
+  maxViewportHeight: MAX_GRID_PX,
+  getCellColor(row, col) {
+    return drawdownPixels[row][col];
+  },
+  onScroll({ scrollX, scrollY }) {
+    threadingGrid.setScrollX(scrollX);
+    warpColorBar.setScrollX(scrollX);
+    treadlingGrid.setScrollY(scrollY);
+    weftColorBar.setScrollY(scrollY);
+  },
+});
+
+// --- Treadling grid ---
+const treadlingGrid = new GridCanvas(document.getElementById('treadling-canvas'), {
+  rows: draft.loom.weftCount,
+  cols: draft.loom.treadles,
+  cellSize: CELL_SIZE,
+  maxViewportHeight: MAX_GRID_PX,
+  getCellFilled(row, col) {
+    return draft.treadling[row] === col;
+  },
+  onCellClick(row, col) {
+    draft.treadling[row] = col;
+    rebuildDrawdown();
+    treadlingGrid.render();
+    drawdownGrid.render();
+    autoSave();
+  },
+  onScroll({ scrollY }) {
+    drawdownGrid.setScrollY(scrollY);
+    weftColorBar.setScrollY(scrollY);
+  },
+});
+
+// ============================================================
+// Color tools
+// ============================================================
+
+// --- Palette ---
 const palette = new PalettePanel(document.getElementById('palette-panel'), {
   colors: draft.palette,
   onColorSelect(color) {
@@ -190,12 +207,76 @@ const palette = new PalettePanel(document.getElementById('palette-panel'), {
   },
 });
 
-// --- Draft management ---
+// --- Warp color tools ---
+const warpColorTools = new ColorTools(document.getElementById('warp-color-tools'), {
+  label: 'Warp',
+  getActiveColor,
+  getPalette,
+  onFillAll(color) {
+    draft.warpColors.fill(color);
+    rebuildDrawdown();
+    warpColorBar.render();
+    drawdownGrid.render();
+    autoSave();
+  },
+  onApplyPattern(sequence) {
+    for (let i = 0; i < draft.warpColors.length; i++) {
+      draft.warpColors[i] = sequence[i % sequence.length];
+    }
+    rebuildDrawdown();
+    warpColorBar.render();
+    drawdownGrid.render();
+    autoSave();
+  },
+});
+
+// --- Weft color tools ---
+const weftColorTools = new ColorTools(document.getElementById('weft-color-tools'), {
+  label: 'Weft',
+  getActiveColor,
+  getPalette,
+  onFillAll(color) {
+    draft.weftColors.fill(color);
+    rebuildDrawdown();
+    weftColorBar.render();
+    drawdownGrid.render();
+    autoSave();
+  },
+  onApplyPattern(sequence) {
+    for (let i = 0; i < draft.weftColors.length; i++) {
+      draft.weftColors[i] = sequence[i % sequence.length];
+    }
+    rebuildDrawdown();
+    weftColorBar.render();
+    drawdownGrid.render();
+    autoSave();
+  },
+});
+
+// ============================================================
+// Draft management
+// ============================================================
+
 const draftSelect = document.getElementById('draft-select');
+const draftNameInput = document.getElementById('draft-name');
 const btnNew = document.getElementById('btn-new');
 const btnSave = document.getElementById('btn-save');
-const btnRename = document.getElementById('btn-rename');
 const btnDelete = document.getElementById('btn-delete');
+
+// Inline rename
+draftNameInput.addEventListener('change', () => {
+  const name = draftNameInput.value.trim();
+  if (name) {
+    draft.name = name;
+    autoSave();
+    refreshDraftList();
+  } else {
+    draftNameInput.value = draft.name;
+  }
+});
+draftNameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') draftNameInput.blur();
+});
 
 async function refreshDraftList() {
   const drafts = await StorageService.listDrafts();
@@ -225,16 +306,6 @@ btnSave.addEventListener('click', () => {
   refreshDraftList();
 });
 
-btnRename.addEventListener('click', () => {
-  const name = prompt('Draft name:', draft.name);
-  if (name && name.trim()) {
-    draft.name = name.trim();
-    document.getElementById('draft-name').textContent = draft.name;
-    autoSave();
-    refreshDraftList();
-  }
-});
-
 btnDelete.addEventListener('click', async () => {
   if (!confirm(`Delete "${draft.name}"?`)) return;
   await StorageService.deleteDraft(draft.id);
@@ -248,13 +319,15 @@ btnDelete.addEventListener('click', async () => {
   }
 });
 
-// --- Info bar ---
+// ============================================================
+// Info bar & init
+// ============================================================
+
 function updateInfoBar() {
   document.getElementById('info-bar').textContent =
     `${draft.loom.shafts} shafts · ${draft.loom.treadles} treadles · ${draft.loom.warpCount} ends · ${draft.loom.weftCount} picks`;
 }
 
-// --- Init: load last draft or save default ---
 async function init() {
   const drafts = await StorageService.listDrafts();
   if (drafts.length > 0) {
@@ -264,8 +337,7 @@ async function init() {
       return;
     }
   }
-  // No saved drafts — save the default
-  document.getElementById('draft-name').textContent = draft.name;
+  draftNameInput.value = draft.name;
   autoSave();
   refreshDraftList();
 }
