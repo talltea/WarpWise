@@ -7,13 +7,21 @@ import { PalettePanel } from './ui/palette.js';
 import { RepeatTools, THREADING_PRESETS, TREADLING_PRESETS } from './ui/repeatTools.js';
 import { StorageService } from './services/storage.js';
 
-const CELL_SIZE = 20;
+const MAX_CELL_SIZE = 20;
+const MIN_CELL_SIZE = 4;
 const MAX_GRID_PX = 800;
+
+function computeCellSize(warpCount, weftCount) {
+  const fitW = Math.floor(MAX_GRID_PX / warpCount);
+  const fitH = Math.floor(MAX_GRID_PX / weftCount);
+  return Math.max(MIN_CELL_SIZE, Math.min(MAX_CELL_SIZE, fitW, fitH));
+}
 
 // --- State ---
 let draft = createDraft();
 let drawdownPixels = computeDrawdown(draft);
 let selectedColor = draft.palette[0];
+let cellSize = computeCellSize(draft.loom.warpCount, draft.loom.weftCount);
 
 function rebuildDrawdown() {
   drawdownPixels = computeDrawdown(draft);
@@ -42,13 +50,14 @@ function loadDraftIntoUI(d) {
   draft = d;
   rebuildDrawdown();
   selectedColor = draft.palette[0] ?? '#000000';
+  cellSize = computeCellSize(draft.loom.warpCount, draft.loom.weftCount);
 
-  threadingGrid.update({ rows: draft.loom.shafts, cols: draft.loom.warpCount });
-  tieupGrid.update({ rows: draft.loom.shafts, cols: draft.loom.treadles });
-  treadlingGrid.update({ rows: draft.loom.weftCount, cols: draft.loom.treadles });
-  drawdownGrid.update({ rows: draft.loom.weftCount, cols: draft.loom.warpCount });
-  warpColorBar.update({ cols: draft.loom.warpCount });
-  weftColorBar.update({ rows: draft.loom.weftCount });
+  threadingGrid.update({ rows: draft.loom.shafts, cols: draft.loom.warpCount, cellSize });
+  tieupGrid.update({ rows: draft.loom.shafts, cols: draft.loom.treadles, cellSize });
+  treadlingGrid.update({ rows: draft.loom.weftCount, cols: draft.loom.treadles, cellSize });
+  drawdownGrid.update({ rows: draft.loom.weftCount, cols: draft.loom.warpCount, cellSize });
+  warpColorBar.update({ cols: draft.loom.warpCount, cellSize });
+  weftColorBar.update({ rows: draft.loom.weftCount, cellSize });
 
   palette.setColors(draft.palette);
   draftNameInput.value = draft.name;
@@ -64,7 +73,7 @@ function loadDraftIntoUI(d) {
 const warpColorBar = new GridCanvas(document.getElementById('warp-color-canvas'), {
   rows: 1,
   cols: draft.loom.warpCount,
-  cellSize: CELL_SIZE,
+  cellSize,
   maxViewportWidth: MAX_GRID_PX,
   getCellColor(row, col) {
     return draft.warpColors[col];
@@ -86,7 +95,7 @@ const warpColorBar = new GridCanvas(document.getElementById('warp-color-canvas')
 const threadingGrid = new GridCanvas(document.getElementById('threading-canvas'), {
   rows: draft.loom.shafts,
   cols: draft.loom.warpCount,
-  cellSize: CELL_SIZE,
+  cellSize,
   maxViewportWidth: MAX_GRID_PX,
   getCellFilled(row, col) {
     const shaft = draft.loom.shafts - 1 - row;
@@ -110,7 +119,7 @@ const threadingGrid = new GridCanvas(document.getElementById('threading-canvas')
 const tieupGrid = new GridCanvas(document.getElementById('tieup-canvas'), {
   rows: draft.loom.shafts,
   cols: draft.loom.treadles,
-  cellSize: CELL_SIZE,
+  cellSize,
   getCellFilled(row, col) {
     const shaft = draft.loom.shafts - 1 - row;
     return draft.tieup[shaft][col];
@@ -129,7 +138,7 @@ const tieupGrid = new GridCanvas(document.getElementById('tieup-canvas'), {
 const weftColorBar = new GridCanvas(document.getElementById('weft-color-canvas'), {
   rows: draft.loom.weftCount,
   cols: 1,
-  cellSize: CELL_SIZE,
+  cellSize,
   maxViewportHeight: MAX_GRID_PX,
   getCellColor(row) {
     return draft.weftColors[row];
@@ -151,7 +160,7 @@ const weftColorBar = new GridCanvas(document.getElementById('weft-color-canvas')
 const drawdownGrid = new GridCanvas(document.getElementById('drawdown-canvas'), {
   rows: draft.loom.weftCount,
   cols: draft.loom.warpCount,
-  cellSize: CELL_SIZE,
+  cellSize,
   maxViewportWidth: MAX_GRID_PX,
   maxViewportHeight: MAX_GRID_PX,
   getCellColor(row, col) {
@@ -169,7 +178,7 @@ const drawdownGrid = new GridCanvas(document.getElementById('drawdown-canvas'), 
 const treadlingGrid = new GridCanvas(document.getElementById('treadling-canvas'), {
   rows: draft.loom.weftCount,
   cols: draft.loom.treadles,
-  cellSize: CELL_SIZE,
+  cellSize,
   maxViewportHeight: MAX_GRID_PX,
   getCellFilled(row, col) {
     return draft.treadling[row] === col;
@@ -373,13 +382,14 @@ function applySettings() {
   warpRepeatTools.updateMax(draft.loom.shafts);
   weftRepeatTools.updateMax(draft.loom.treadles);
 
+  cellSize = computeCellSize(draft.loom.warpCount, draft.loom.weftCount);
   rebuildDrawdown();
-  threadingGrid.update({ rows: draft.loom.shafts, cols: draft.loom.warpCount });
-  tieupGrid.update({ rows: draft.loom.shafts, cols: draft.loom.treadles });
-  treadlingGrid.update({ rows: draft.loom.weftCount, cols: draft.loom.treadles });
-  drawdownGrid.update({ rows: draft.loom.weftCount, cols: draft.loom.warpCount });
-  warpColorBar.update({ cols: draft.loom.warpCount });
-  weftColorBar.update({ rows: draft.loom.weftCount });
+  threadingGrid.update({ rows: draft.loom.shafts, cols: draft.loom.warpCount, cellSize });
+  tieupGrid.update({ rows: draft.loom.shafts, cols: draft.loom.treadles, cellSize });
+  treadlingGrid.update({ rows: draft.loom.weftCount, cols: draft.loom.treadles, cellSize });
+  drawdownGrid.update({ rows: draft.loom.weftCount, cols: draft.loom.warpCount, cellSize });
+  warpColorBar.update({ cols: draft.loom.warpCount, cellSize });
+  weftColorBar.update({ rows: draft.loom.weftCount, cellSize });
 
   renderAll();
   autoSave();
