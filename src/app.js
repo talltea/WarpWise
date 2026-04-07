@@ -1,6 +1,6 @@
 // app.js — Entry point, state management, event wiring
 
-import { createDraft } from './model/draft.js';
+import { createDraft, resizeDraft } from './model/draft.js';
 import { computeDrawdown } from './model/drawdown.js';
 import { GridCanvas } from './ui/gridCanvas.js';
 import { PalettePanel } from './ui/palette.js';
@@ -329,12 +329,81 @@ btnDelete.addEventListener('click', async () => {
 });
 
 // ============================================================
+// Settings dialog
+// ============================================================
+
+const settingsDialog = document.getElementById('settings-dialog');
+const btnSettings = document.getElementById('btn-settings');
+const setShafts = document.getElementById('set-shafts');
+const setTreadles = document.getElementById('set-treadles');
+const setWarp = document.getElementById('set-warp');
+const setWeft = document.getElementById('set-weft');
+const setEpi = document.getElementById('set-epi');
+const setPpi = document.getElementById('set-ppi');
+const btnSettingsCancel = document.getElementById('settings-cancel');
+const btnSettingsApply = document.getElementById('settings-apply');
+
+function openSettings() {
+  setShafts.value = draft.loom.shafts;
+  setTreadles.value = draft.loom.treadles;
+  setWarp.value = draft.loom.warpCount;
+  setWeft.value = draft.loom.weftCount;
+  setEpi.value = draft.loom.epi ?? '';
+  setPpi.value = draft.loom.ppi ?? '';
+  settingsDialog.showModal();
+}
+
+function closeSettings() {
+  settingsDialog.close();
+}
+
+function applySettings() {
+  const shafts = Math.max(2, Math.min(32, parseInt(setShafts.value) || 4));
+  const treadles = Math.max(2, Math.min(32, parseInt(setTreadles.value) || 6));
+  const warpCount = Math.max(1, Math.min(2000, parseInt(setWarp.value) || 60));
+  const weftCount = Math.max(1, Math.min(2000, parseInt(setWeft.value) || 60));
+  const epiVal = parseInt(setEpi.value);
+  const epi = (epiVal > 0) ? epiVal : null;
+  const ppiVal = parseInt(setPpi.value);
+  const ppi = (ppiVal > 0) ? ppiVal : null;
+
+  resizeDraft(draft, { shafts, treadles, warpCount, weftCount, epi, ppi });
+
+  // Update repeat tools max values
+  warpRepeatTools.updateMax(draft.loom.shafts);
+  weftRepeatTools.updateMax(draft.loom.treadles);
+
+  rebuildDrawdown();
+  threadingGrid.update({ rows: draft.loom.shafts, cols: draft.loom.warpCount });
+  tieupGrid.update({ rows: draft.loom.shafts, cols: draft.loom.treadles });
+  treadlingGrid.update({ rows: draft.loom.weftCount, cols: draft.loom.treadles });
+  drawdownGrid.update({ rows: draft.loom.weftCount, cols: draft.loom.warpCount });
+  warpColorBar.update({ cols: draft.loom.warpCount });
+  weftColorBar.update({ rows: draft.loom.weftCount });
+
+  renderAll();
+  autoSave();
+  closeSettings();
+}
+
+btnSettings.addEventListener('click', openSettings);
+btnSettingsCancel.addEventListener('click', closeSettings);
+btnSettingsApply.addEventListener('click', applySettings);
+
+// Close on backdrop click
+settingsDialog.addEventListener('click', (e) => {
+  if (e.target === settingsDialog) closeSettings();
+});
+
+// ============================================================
 // Info bar & init
 // ============================================================
 
 function updateInfoBar() {
-  document.getElementById('info-bar').textContent =
-    `${draft.loom.shafts} shafts · ${draft.loom.treadles} treadles · ${draft.loom.warpCount} ends · ${draft.loom.weftCount} picks`;
+  let info = `${draft.loom.shafts} shafts · ${draft.loom.treadles} treadles · ${draft.loom.warpCount} ends · ${draft.loom.weftCount} picks`;
+  if (draft.loom.epi) info += ` · ${draft.loom.epi} epi`;
+  if (draft.loom.ppi) info += ` · ${draft.loom.ppi} ppi`;
+  document.getElementById('info-bar').textContent = info;
 }
 
 async function init() {

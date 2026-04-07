@@ -15,6 +15,7 @@
       <button id="btn-new" class="btn" title="New draft">New</button>
       <button id="btn-save" class="btn" title="Save draft">Save</button>
       <button id="btn-delete" class="btn btn-danger" title="Delete draft">Delete</button>
+      <button id="btn-settings" class="btn" title="Loom &amp; project settings">Settings</button>
     </div>
   </header>
 
@@ -67,6 +68,50 @@
       </div>
     </div>
   </div>
+
+  <!-- Settings Modal -->
+  <dialog id="settings-dialog" class="settings-dialog">
+    <form method="dialog">
+      <h2>Settings</h2>
+
+      <fieldset>
+        <legend>Loom Setup</legend>
+        <div class="settings-field">
+          <label for="set-shafts">Shafts</label>
+          <input id="set-shafts" type="number" min="2" max="32" value="4">
+        </div>
+        <div class="settings-field">
+          <label for="set-treadles">Treadles</label>
+          <input id="set-treadles" type="number" min="2" max="32" value="6">
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Project Setup</legend>
+        <div class="settings-field">
+          <label for="set-warp">Warp ends</label>
+          <input id="set-warp" type="number" min="1" max="2000" value="60">
+        </div>
+        <div class="settings-field">
+          <label for="set-weft">Weft picks</label>
+          <input id="set-weft" type="number" min="1" max="2000" value="60">
+        </div>
+        <div class="settings-field">
+          <label for="set-epi">EPI <span class="optional">(optional)</span></label>
+          <input id="set-epi" type="number" min="1" max="200" placeholder="—">
+        </div>
+        <div class="settings-field">
+          <label for="set-ppi">PPI <span class="optional">(optional)</span></label>
+          <input id="set-ppi" type="number" min="1" max="200" placeholder="—">
+        </div>
+      </fieldset>
+
+      <div class="settings-actions">
+        <button type="button" id="settings-cancel" class="btn">Cancel</button>
+        <button type="button" id="settings-apply" class="btn btn-primary">Apply</button>
+      </div>
+    </form>
+  </dialog>
 
   <div class="info-bar" id="info-bar"></div>
 

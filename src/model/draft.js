@@ -11,7 +11,11 @@ export function createDraft(overrides = {}) {
     name: overrides.name ?? 'Untitled Draft',
     createdAt: overrides.createdAt ?? new Date().toISOString(),
     updatedAt: overrides.updatedAt ?? new Date().toISOString(),
-    loom: { shafts, treadles, warpCount, weftCount },
+    loom: {
+      shafts, treadles, warpCount, weftCount,
+      epi: overrides.epi ?? null,
+      ppi: overrides.ppi ?? null,
+    },
     threading: overrides.threading ?? createStraightDraw(warpCount, shafts),
     tieup: overrides.tieup ?? createDefaultTieup(shafts, treadles),
     treadling: overrides.treadling ?? createDefaultTreadling(weftCount),
@@ -65,6 +69,81 @@ export function createRepeatingTreadling(count, sequence) {
 // Default treadling: treadles 3-4-5-6 (0-indexed: 2,3,4,5)
 export function createDefaultTreadling(count) {
   return createRepeatingTreadling(count, [2, 3, 4, 5]);
+}
+
+/**
+ * Resize a draft to new loom/project dimensions.
+ * Preserves existing data where possible, fills new cells with defaults.
+ */
+export function resizeDraft(draft, { shafts, treadles, warpCount, weftCount, epi, ppi }) {
+  const oldLoom = draft.loom;
+
+  // --- Shafts ---
+  if (shafts !== oldLoom.shafts) {
+    // Resize tieup rows
+    if (shafts > oldLoom.shafts) {
+      for (let s = oldLoom.shafts; s < shafts; s++) {
+        draft.tieup.push(Array(oldLoom.treadles).fill(false));
+      }
+    } else {
+      draft.tieup.length = shafts;
+    }
+    // Clamp threading values
+    for (let i = 0; i < draft.threading.length; i++) {
+      if (draft.threading[i] >= shafts) draft.threading[i] = draft.threading[i] % shafts;
+    }
+    oldLoom.shafts = shafts;
+  }
+
+  // --- Treadles ---
+  if (treadles !== oldLoom.treadles) {
+    for (let s = 0; s < draft.tieup.length; s++) {
+      if (treadles > oldLoom.treadles) {
+        draft.tieup[s] = [...draft.tieup[s], ...Array(treadles - oldLoom.treadles).fill(false)];
+      } else {
+        draft.tieup[s].length = treadles;
+      }
+    }
+    // Clamp treadling values
+    for (let i = 0; i < draft.treadling.length; i++) {
+      if (draft.treadling[i] >= treadles) draft.treadling[i] = draft.treadling[i] % treadles;
+    }
+    oldLoom.treadles = treadles;
+  }
+
+  // --- Warp count ---
+  if (warpCount !== oldLoom.warpCount) {
+    if (warpCount > oldLoom.warpCount) {
+      for (let i = oldLoom.warpCount; i < warpCount; i++) {
+        draft.threading.push(i % shafts);
+        draft.warpColors.push(draft.warpColors[oldLoom.warpCount - 1] ?? '#000000');
+      }
+    } else {
+      draft.threading.length = warpCount;
+      draft.warpColors.length = warpCount;
+    }
+    oldLoom.warpCount = warpCount;
+  }
+
+  // --- Weft count ---
+  if (weftCount !== oldLoom.weftCount) {
+    if (weftCount > oldLoom.weftCount) {
+      for (let i = oldLoom.weftCount; i < weftCount; i++) {
+        draft.treadling.push(i % treadles);
+        draft.weftColors.push(draft.weftColors[oldLoom.weftCount - 1] ?? '#ffffff');
+      }
+    } else {
+      draft.treadling.length = weftCount;
+      draft.weftColors.length = weftCount;
+    }
+    oldLoom.weftCount = weftCount;
+  }
+
+  // --- Optional metadata ---
+  oldLoom.epi = epi;
+  oldLoom.ppi = ppi;
+
+  return draft;
 }
 
 export function validateDraft(draft) {

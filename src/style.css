@@ -403,6 +403,74 @@ header h1 { font-size: 18px; font-weight: 600; }
 }
 
 
+/* --- Settings Dialog --- */
+.settings-dialog {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 360px;
+  width: 90vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  font-family: var(--font);
+  color: var(--text);
+}
+.settings-dialog::backdrop {
+  background: rgba(0,0,0,0.3);
+}
+.settings-dialog h2 {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+.settings-dialog fieldset {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+.settings-dialog legend {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  padding: 0 6px;
+}
+.settings-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.settings-field:last-child { margin-bottom: 0; }
+.settings-field label {
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.settings-field label .optional {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.settings-field input[type="number"] {
+  width: 80px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  text-align: right;
+}
+.settings-field input[type="number"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
 /* --- Info Bar --- */
 .info-bar {
   padding: 8px 24px;
