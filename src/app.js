@@ -4,8 +4,7 @@ import { createDraft } from './model/draft.js';
 import { computeDrawdown } from './model/drawdown.js';
 import { GridCanvas } from './ui/gridCanvas.js';
 import { PalettePanel } from './ui/palette.js';
-import { ColorTools } from './ui/colorTools.js';
-import { SequenceTools, THREADING_PRESETS, TREADLING_PRESETS } from './ui/sequenceTools.js';
+import { RepeatTools, THREADING_PRESETS, TREADLING_PRESETS } from './ui/repeatTools.js';
 import { StorageService } from './services/storage.js';
 
 const CELL_SIZE = 20;
@@ -36,10 +35,6 @@ function autoSave() {
 
 function getActiveColor() {
   return selectedColor;
-}
-
-function getPalette() {
-  return draft.palette;
 }
 
 // --- Load a draft into the UI ---
@@ -193,46 +188,9 @@ const treadlingGrid = new GridCanvas(document.getElementById('treadling-canvas')
 });
 
 // ============================================================
-// Sequence tools (threading & treadling patterns)
+// Palette
 // ============================================================
 
-const threadingTools = new SequenceTools(document.getElementById('threading-tools'), {
-  label: 'Threading',
-  max: draft.loom.shafts,
-  direction: 'cols',
-  presets: THREADING_PRESETS,
-  onApply(sequence) {
-    for (let i = 0; i < draft.threading.length; i++) {
-      draft.threading[i] = sequence[i % sequence.length];
-    }
-    rebuildDrawdown();
-    threadingGrid.render();
-    drawdownGrid.render();
-    autoSave();
-  },
-});
-
-const treadlingTools = new SequenceTools(document.getElementById('treadling-tools'), {
-  label: 'Treadling',
-  max: draft.loom.treadles,
-  direction: 'rows',
-  presets: TREADLING_PRESETS,
-  onApply(sequence) {
-    for (let i = 0; i < draft.treadling.length; i++) {
-      draft.treadling[i] = sequence[i % sequence.length];
-    }
-    rebuildDrawdown();
-    treadlingGrid.render();
-    drawdownGrid.render();
-    autoSave();
-  },
-});
-
-// ============================================================
-// Color tools
-// ============================================================
-
-// --- Palette ---
 const palette = new PalettePanel(document.getElementById('palette-panel'), {
   colors: draft.palette,
   onColorSelect(color) {
@@ -244,46 +202,60 @@ const palette = new PalettePanel(document.getElementById('palette-panel'), {
   },
 });
 
-// --- Warp color tools ---
-const warpColorTools = new ColorTools(document.getElementById('warp-color-tools'), {
+// ============================================================
+// Repeat tools (consolidated sequence + color patterns)
+// ============================================================
+
+const warpRepeatTools = new RepeatTools(document.getElementById('warp-repeat-tools'), {
   label: 'Warp',
+  max: draft.loom.shafts,
+  direction: 'cols',
+  presets: THREADING_PRESETS,
   getActiveColor,
-  getPalette,
-  onFillAll(color) {
+  onFillAllColor(color) {
     draft.warpColors.fill(color);
     rebuildDrawdown();
     warpColorBar.render();
     drawdownGrid.render();
     autoSave();
   },
-  onApplyPattern(sequence) {
+  onApply({ sequence, colors }) {
+    for (let i = 0; i < draft.threading.length; i++) {
+      draft.threading[i] = sequence[i % sequence.length];
+    }
     for (let i = 0; i < draft.warpColors.length; i++) {
-      draft.warpColors[i] = sequence[i % sequence.length];
+      draft.warpColors[i] = colors[i % colors.length];
     }
     rebuildDrawdown();
+    threadingGrid.render();
     warpColorBar.render();
     drawdownGrid.render();
     autoSave();
   },
 });
 
-// --- Weft color tools ---
-const weftColorTools = new ColorTools(document.getElementById('weft-color-tools'), {
+const weftRepeatTools = new RepeatTools(document.getElementById('weft-repeat-tools'), {
   label: 'Weft',
+  max: draft.loom.treadles,
+  direction: 'rows',
+  presets: TREADLING_PRESETS,
   getActiveColor,
-  getPalette,
-  onFillAll(color) {
+  onFillAllColor(color) {
     draft.weftColors.fill(color);
     rebuildDrawdown();
     weftColorBar.render();
     drawdownGrid.render();
     autoSave();
   },
-  onApplyPattern(sequence) {
+  onApply({ sequence, colors }) {
+    for (let i = 0; i < draft.treadling.length; i++) {
+      draft.treadling[i] = sequence[i % sequence.length];
+    }
     for (let i = 0; i < draft.weftColors.length; i++) {
-      draft.weftColors[i] = sequence[i % sequence.length];
+      draft.weftColors[i] = colors[i % colors.length];
     }
     rebuildDrawdown();
+    treadlingGrid.render();
     weftColorBar.render();
     drawdownGrid.render();
     autoSave();
