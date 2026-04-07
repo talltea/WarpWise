@@ -269,14 +269,10 @@ header h1 { font-size: 18px; font-weight: 600; }
 
 .repeat-delete-cols {
   flex-direction: row;
-  /* offset by 1px to account for grid border */
-  padding-left: 1px;
 }
 
 .repeat-delete-rows {
   flex-direction: column;
-  /* offset by 1px to account for grid border */
-  padding-top: 1px;
 }
 
 .repeat-delete-btn {
@@ -296,13 +292,13 @@ header h1 { font-size: 18px; font-weight: 600; }
 }
 
 .repeat-delete-cols .repeat-delete-btn {
-  width: 19px;
+  width: 18px;
   height: 16px;
 }
 
 .repeat-delete-rows .repeat-delete-btn {
   width: 16px;
-  height: 19px;
+  height: 18px;
 }
 
 .repeat-delete-btn:hover {
@@ -310,26 +306,8 @@ header h1 { font-size: 18px; font-weight: 600; }
   background: rgba(204, 51, 51, 0.08);
 }
 
-/* Color slots */
-.repeat-color-section {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.repeat-color-section-rows {
-  flex-direction: column;
-  align-items: flex-start;
-}
-
 .repeat-color-slots-vertical {
   flex-direction: column;
-}
-
-.repeat-color-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  flex-shrink: 0;
 }
 
 .repeat-color-slots {
@@ -351,14 +329,9 @@ header h1 { font-size: 18px; font-weight: 600; }
 }
 .pattern-slot:hover { border-color: var(--accent); }
 
-.repeat-color-slots .pattern-slot {
-  /* 18px slot + 1px gap = 19px pitch, matching the grid cells */
-  margin: 0;
-}
-.repeat-grid-area-cols ~ .repeat-color-section .repeat-color-slots {
-  padding-left: 1px;
-}
-.repeat-color-slots { gap: 1px; }
+.repeat-color-slots { gap: 0; }
+.repeat-delete-cols { gap: 0; }
+.repeat-delete-rows { gap: 0; }
 
 /* --- Grid Layout --- */
 /*

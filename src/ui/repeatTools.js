@@ -135,28 +135,25 @@ export class RepeatTools {
     gridWrap.appendChild(canvas);
     gridArea.appendChild(gridWrap);
 
-    const deleteSection = document.createElement('div');
-    deleteSection.className = 'repeat-delete-section' + (isRows ? ' repeat-delete-rows' : ' repeat-delete-cols');
-    this._populateDeleteButtons(deleteSection, builder, lengthInput);
-    gridArea.appendChild(deleteSection);
-
-    builder.appendChild(gridArea);
-
     // Color slots
-    const colorSection = document.createElement('div');
-    colorSection.className = 'repeat-color-section' + (isRows ? ' repeat-color-section-rows' : '');
-
-    const colorLabel = document.createElement('span');
-    colorLabel.className = 'repeat-color-label';
-    colorLabel.textContent = 'Colors:';
-    colorSection.appendChild(colorLabel);
-
     const slotsRow = document.createElement('div');
     slotsRow.className = 'repeat-color-slots' + (isRows ? ' repeat-color-slots-vertical' : '');
     this._populateColorSlots(slotsRow);
-    colorSection.appendChild(slotsRow);
 
-    builder.appendChild(colorSection);
+    const deleteSection = document.createElement('div');
+    deleteSection.className = 'repeat-delete-section' + (isRows ? ' repeat-delete-rows' : ' repeat-delete-cols');
+    this._populateDeleteButtons(deleteSection, builder, lengthInput);
+
+    if (isRows) {
+      // Weft: grid | x-buttons | colors — all in one horizontal row
+      gridArea.appendChild(deleteSection);
+      gridArea.appendChild(slotsRow);
+    } else {
+      // Warp: grid / x-buttons / colors — all stacked vertically, left-aligned
+      gridArea.appendChild(deleteSection);
+      gridArea.appendChild(slotsRow);
+    }
+    builder.appendChild(gridArea);
 
     // Apply button
     const applyBtn = document.createElement('button');
