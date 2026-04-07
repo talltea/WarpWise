@@ -217,6 +217,7 @@ const palette = new PalettePanel(document.getElementById('palette-panel'), {
 
 const warpRepeatTools = new RepeatTools(document.getElementById('warp-repeat-tools'), {
   label: 'Warp',
+  type: 'threading',
   max: draft.loom.shafts,
   direction: 'cols',
   presets: THREADING_PRESETS,
@@ -245,6 +246,7 @@ const warpRepeatTools = new RepeatTools(document.getElementById('warp-repeat-too
 
 const weftRepeatTools = new RepeatTools(document.getElementById('weft-repeat-tools'), {
   label: 'Weft',
+  type: 'treadling',
   max: draft.loom.treadles,
   direction: 'rows',
   presets: TREADLING_PRESETS,

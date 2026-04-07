@@ -1,6 +1,7 @@
 // services/storage.js — Save/load abstraction (localStorage now, API later)
 
 const STORAGE_KEY = 'weaving-drafts';
+const PATTERNS_KEY = 'weaving-patterns';
 
 function getAllDrafts() {
   const raw = localStorage.getItem(STORAGE_KEY);
@@ -35,5 +36,40 @@ export const StorageService = {
     const drafts = getAllDrafts();
     delete drafts[id];
     setAllDrafts(drafts);
+  },
+};
+
+// --- Pattern Library ---
+
+function getAllPatterns() {
+  const raw = localStorage.getItem(PATTERNS_KEY);
+  return raw ? JSON.parse(raw) : {};
+}
+
+function setAllPatterns(patterns) {
+  localStorage.setItem(PATTERNS_KEY, JSON.stringify(patterns));
+}
+
+export const PatternLibrary = {
+  list(type) {
+    const all = getAllPatterns();
+    return Object.values(all)
+      .filter(p => !type || p.type === type)
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  },
+
+  save(pattern) {
+    const all = getAllPatterns();
+    if (!pattern.id) pattern.id = crypto.randomUUID();
+    pattern.createdAt = pattern.createdAt ?? new Date().toISOString();
+    all[pattern.id] = pattern;
+    setAllPatterns(all);
+    return pattern;
+  },
+
+  delete(id) {
+    const all = getAllPatterns();
+    delete all[id];
+    setAllPatterns(all);
   },
 };

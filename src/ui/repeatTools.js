@@ -1,11 +1,13 @@
 // ui/repeatTools.js — Consolidated repeat pattern tool for threading/treadling + colors
 
 import { GridCanvas } from './gridCanvas.js';
+import { PatternLibrary } from '../services/storage.js';
 
 /**
  * @param {HTMLElement} container
  * @param {object} options
  * @param {string} options.label - "Warp" or "Weft"
+ * @param {string} options.type - "threading" or "treadling" (for pattern library)
  * @param {number} options.max - Number of shafts or treadles
  * @param {string} options.direction - "cols" (warp: shafts×N) or "rows" (weft: N×treadles)
  * @param {function} options.getActiveColor - () => current selected color
@@ -17,6 +19,7 @@ export class RepeatTools {
   constructor(container, options) {
     this.container = container;
     this.label = options.label;
+    this.type = options.type;
     this.max = options.max;
     this.direction = options.direction;
     this.getActiveColor = options.getActiveColor;
@@ -124,6 +127,12 @@ export class RepeatTools {
 
     builder.appendChild(topRow);
 
+    // Saved patterns
+    const savedSection = document.createElement('div');
+    savedSection.className = 'repeat-saved-section';
+    this._renderSavedPatterns(savedSection, builder, lengthInput);
+    builder.appendChild(savedSection);
+
     // Grid + delete buttons wrapper
     const isRows = this.direction === 'rows';
     const gridArea = document.createElement('div');
@@ -155,7 +164,28 @@ export class RepeatTools {
     }
     builder.appendChild(gridArea);
 
-    // Apply button
+    // Action buttons
+    const actionsRow = document.createElement('div');
+    actionsRow.className = 'repeat-actions-row';
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'btn btn-sm';
+    saveBtn.textContent = 'Save to Library';
+    saveBtn.addEventListener('click', () => {
+      const name = prompt('Pattern name:');
+      if (!name || !name.trim()) return;
+      PatternLibrary.save({
+        name: name.trim(),
+        type: this.type,
+        sequence: [...this.sequence],
+        colors: [...this.colors],
+        max: this.max,
+      });
+      const saved = builder.querySelector('.repeat-saved-section');
+      if (saved) this._renderSavedPatterns(saved, builder, lengthInput);
+    });
+    actionsRow.appendChild(saveBtn);
+
     const applyBtn = document.createElement('button');
     applyBtn.className = 'btn btn-primary';
     applyBtn.textContent = 'Apply';
@@ -165,7 +195,9 @@ export class RepeatTools {
         colors: [...this.colors],
       });
     });
-    builder.appendChild(applyBtn);
+    actionsRow.appendChild(applyBtn);
+
+    builder.appendChild(actionsRow);
 
     this.container.appendChild(builder);
 
@@ -290,6 +322,56 @@ export class RepeatTools {
     if (slotsRow) {
       this._populateColorSlots(slotsRow);
     }
+  }
+
+  _renderSavedPatterns(container, builder, lengthInput) {
+    container.innerHTML = '';
+    const patterns = PatternLibrary.list(this.type);
+    if (patterns.length === 0) return;
+
+    const label = document.createElement('span');
+    label.className = 'repeat-presets-label';
+    label.textContent = 'Saved:';
+    container.appendChild(label);
+
+    const list = document.createElement('div');
+    list.className = 'repeat-saved-list';
+
+    for (const p of patterns) {
+      const item = document.createElement('div');
+      item.className = 'repeat-saved-item';
+
+      const loadBtn = document.createElement('button');
+      loadBtn.className = 'btn btn-sm';
+      loadBtn.textContent = p.name;
+      loadBtn.title = `Load "${p.name}" (${p.sequence.length} steps)`;
+      loadBtn.addEventListener('click', () => {
+        this.sequence = [...p.sequence];
+        // Clamp to current max
+        for (let i = 0; i < this.sequence.length; i++) {
+          if (this.sequence[i] >= this.max) this.sequence[i] = this.sequence[i] % this.max;
+        }
+        this.colors = p.colors ? [...p.colors] : Array(this.sequence.length).fill(this.getActiveColor());
+        this._syncColorsToLength();
+        lengthInput.value = this.sequence.length;
+        this._rebuildAll(builder, lengthInput);
+      });
+      item.appendChild(loadBtn);
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'repeat-saved-delete';
+      delBtn.textContent = '\u00d7';
+      delBtn.title = `Delete "${p.name}"`;
+      delBtn.addEventListener('click', () => {
+        if (!confirm(`Delete pattern "${p.name}"?`)) return;
+        PatternLibrary.delete(p.id);
+        this._renderSavedPatterns(container, builder, lengthInput);
+      });
+      item.appendChild(delBtn);
+
+      list.appendChild(item);
+    }
+    container.appendChild(list);
   }
 
   updateMax(max) {
