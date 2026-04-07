@@ -124,22 +124,27 @@ export class RepeatTools {
 
     builder.appendChild(topRow);
 
-    // Mini grid for sequence
+    // Grid + delete buttons wrapper
+    const isRows = this.direction === 'rows';
+    const gridArea = document.createElement('div');
+    gridArea.className = 'repeat-grid-area' + (isRows ? ' repeat-grid-area-rows' : ' repeat-grid-area-cols');
+
     const gridWrap = document.createElement('div');
     gridWrap.className = 'repeat-grid-wrap';
     const canvas = document.createElement('canvas');
     gridWrap.appendChild(canvas);
-    builder.appendChild(gridWrap);
+    gridArea.appendChild(gridWrap);
 
-    // Delete buttons row
     const deleteSection = document.createElement('div');
-    deleteSection.className = 'repeat-delete-section';
+    deleteSection.className = 'repeat-delete-section' + (isRows ? ' repeat-delete-rows' : ' repeat-delete-cols');
     this._populateDeleteButtons(deleteSection, builder, lengthInput);
-    builder.appendChild(deleteSection);
+    gridArea.appendChild(deleteSection);
+
+    builder.appendChild(gridArea);
 
     // Color slots
     const colorSection = document.createElement('div');
-    colorSection.className = 'repeat-color-section';
+    colorSection.className = 'repeat-color-section' + (isRows ? ' repeat-color-section-rows' : '');
 
     const colorLabel = document.createElement('span');
     colorLabel.className = 'repeat-color-label';
@@ -147,7 +152,7 @@ export class RepeatTools {
     colorSection.appendChild(colorLabel);
 
     const slotsRow = document.createElement('div');
-    slotsRow.className = 'repeat-color-slots';
+    slotsRow.className = 'repeat-color-slots' + (isRows ? ' repeat-color-slots-vertical' : '');
     this._populateColorSlots(slotsRow);
     colorSection.appendChild(slotsRow);
 
@@ -195,6 +200,8 @@ export class RepeatTools {
     this._rebuildColorSlots(builder);
     const deleteSection = builder.querySelector('.repeat-delete-section');
     if (deleteSection) this._populateDeleteButtons(deleteSection, builder, lengthInput);
+    const colorSlots = builder.querySelector('.repeat-color-slots');
+    if (colorSlots) this._populateColorSlots(colorSlots);
   }
 
   _populateColorSlots(slotsRow) {
