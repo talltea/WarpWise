@@ -62,8 +62,16 @@ Build a single-page, client-side web app hosted on GitHub Pages that allows a us
 - [x] **Save/load drafts** — localStorage with named drafts, auto-save on every edit
 - [x] **New / rename / delete draft** — inline rename by clicking the name
 - [ ] **Export draft as PNG image**
+- [ ] **Export draft as importable data**
+- [ ] **Export repeates as importable data**
+- [ ] **Import repeate data**
+- [ ] **IMport draft data**
 - [x] **Synchronized scrolling** — threading/drawdown share horizontal scroll, treadling/drawdown share vertical scroll
 - [x] **Virtualized rendering** — only visible cells are drawn (viewport-based)
+- [ ] **More default patterns** — overshot, ...?
+- [ ] **Save palettes**
+- [ ] **More default/random palettes**
+- [ ] **Pattern library expansion** - how many saved patters can we really expect to list as individual buttons?
 
 ### Phase 2
 
