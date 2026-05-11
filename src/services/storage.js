@@ -2,6 +2,7 @@
 
 const STORAGE_KEY = 'weaving-drafts';
 const PATTERNS_KEY = 'weaving-patterns';
+const PALETTES_KEY = 'weaving-palettes';
 
 function getAllDrafts() {
   const raw = localStorage.getItem(STORAGE_KEY);
@@ -71,5 +72,39 @@ export const PatternLibrary = {
     const all = getAllPatterns();
     delete all[id];
     setAllPatterns(all);
+  },
+};
+
+// --- Palette Library ---
+
+function getAllPalettes() {
+  const raw = localStorage.getItem(PALETTES_KEY);
+  return raw ? JSON.parse(raw) : {};
+}
+
+function setAllPalettes(palettes) {
+  localStorage.setItem(PALETTES_KEY, JSON.stringify(palettes));
+}
+
+export const PaletteLibrary = {
+  list() {
+    const all = getAllPalettes();
+    return Object.values(all)
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  },
+
+  save(palette) {
+    const all = getAllPalettes();
+    if (!palette.id) palette.id = crypto.randomUUID();
+    palette.createdAt = palette.createdAt ?? new Date().toISOString();
+    all[palette.id] = palette;
+    setAllPalettes(all);
+    return palette;
+  },
+
+  delete(id) {
+    const all = getAllPalettes();
+    delete all[id];
+    setAllPalettes(all);
   },
 };

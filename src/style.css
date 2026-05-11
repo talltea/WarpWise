@@ -139,8 +139,18 @@ header h1 { font-size: 18px; font-weight: 600; }
 /* --- Palette --- */
 #palette-panel {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.palette-top-row {
+  display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.palette-toggle-row {
+  display: flex;
 }
 
 .palette-active-swatch {
@@ -187,6 +197,91 @@ header h1 { font-size: 18px; font-weight: 600; }
   justify-content: center;
 }
 .palette-add:hover { background: var(--border); color: var(--text); }
+
+/* --- Palette Library (presets + saved) --- */
+.palette-library {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.palette-library-actions {
+  display: flex;
+}
+
+.palette-library-section {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.palette-library-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.palette-library-item {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+}
+
+.palette-library-load {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+  text-align: left;
+}
+.palette-library-load:hover {
+  background: var(--bg);
+  border-color: var(--accent);
+}
+
+.palette-library-name {
+  font-size: 11px;
+  color: var(--text);
+}
+
+.palette-library-swatches {
+  display: flex;
+  gap: 0;
+  height: 14px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.palette-library-mini-swatch {
+  flex: 1;
+  display: block;
+}
+
+.palette-library-delete {
+  padding: 0 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: color 0.1s, background 0.1s;
+}
+.palette-library-delete:hover {
+  color: var(--danger);
+  background: rgba(204, 51, 51, 0.08);
+}
 
 /* --- Repeat Tools (consolidated sequence + color) --- */
 .repeat-tools-row {
