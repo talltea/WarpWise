@@ -49,6 +49,8 @@ export class PalettePanel {
     row.className = 'palette-swatches';
     for (let i = 0; i < this.colors.length; i++) {
       const color = this.colors[i];
+      const wrap = document.createElement('span');
+      wrap.className = 'palette-swatch-wrap';
       const sw = document.createElement('button');
       sw.className = 'palette-swatch';
       if (color === this.selectedColor) sw.classList.add('selected');
@@ -69,7 +71,19 @@ export class PalettePanel {
           this.render();
         });
       });
-      row.appendChild(sw);
+      wrap.appendChild(sw);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'palette-swatch-remove';
+      removeBtn.textContent = '×';
+      removeBtn.title = `Remove ${color}`;
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this._removeColorAt(i);
+      });
+      wrap.appendChild(removeBtn);
+
+      row.appendChild(wrap);
     }
     const addBtn = document.createElement('button');
     addBtn.className = 'palette-swatch palette-add';
@@ -203,6 +217,18 @@ export class PalettePanel {
     }
 
     return item;
+  }
+
+  _removeColorAt(index) {
+    if (index < 0 || index >= this.colors.length) return;
+    const removed = this.colors[index];
+    this.colors.splice(index, 1);
+    if (this.selectedColor === removed) {
+      this.selectedColor = this.colors[0] ?? '#000000';
+      this.onColorSelect?.(this.selectedColor);
+    }
+    this.onPaletteChange?.(this.colors);
+    this.render();
   }
 
   _loadPalette(colors) {

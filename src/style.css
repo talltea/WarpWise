@@ -187,6 +187,37 @@ header h1 { font-size: 18px; font-weight: 600; }
   box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.3);
 }
 
+.palette-swatch-wrap {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
+
+.palette-swatch-remove {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+.palette-swatch-wrap:hover .palette-swatch-remove { display: flex; }
+.palette-swatch-remove:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
 .palette-add {
   background: var(--bg);
   color: var(--text-muted);
